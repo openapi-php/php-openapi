@@ -36,7 +36,6 @@
 
 		"mermade/openapi3-examples": "1.0.0",
 		"apis-guru/openapi-directory": "1.0.0",
-		"nexmo/api-specification": "1.0.0",
 		"phpstan/phpstan": "^0.12.0"
 	},
 	"conflict": {
@@ -101,18 +100,6 @@
 					"url": "https://github.com/APIs-guru/openapi-directory",
 					"type": "git",
 					"reference": "openapi3.0.0"
-				}
-			}
-		},
-		{
-			"type": "package",
-			"package": {
-				"name": "nexmo/api-specification",
-				"version": "1.0.0",
-				"source": {
-					"url": "https://github.com/Nexmo/api-specification",
-					"type": "git",
-					"reference": "voice-2.0.0"
 				}
 			}
 		}
