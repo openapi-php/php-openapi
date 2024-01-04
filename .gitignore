@@ -6,5 +6,6 @@
 
 /.php_cs.cache
 /.phpunit.result.cache
-
+/.idea
+xdebug_remote.log
 php-cs-fixer.phar
