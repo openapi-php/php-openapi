@@ -159,10 +159,9 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
             $it->next();
         }
 
-        // examples from https://github.com/Nexmo/api-specification/tree/master/definitions
         $nexmoExamples = [];
         /** @var $it RecursiveDirectoryIterator|RecursiveIteratorIterator */
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../../vendor/nexmo/api-specification/definitions'));
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../resources/definitions'));
         $it->rewind();
         while($it->valid()) {
             if ($it->getExtension() === 'yml'
@@ -181,9 +180,8 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
             $nexmoExamples
         );
         foreach($all as $path) {
-            $pathWithoutVendorPrefix = substr($path, strlen(__DIR__ . '/../../vendor/'));
-            yield $pathWithoutVendorPrefix => [
-                $pathWithoutVendorPrefix
+            yield $path => [
+                $path
             ];
         }
     }
@@ -194,10 +192,10 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
     public function testSpecs($openApiFile)
     {
         if (strtolower(substr($openApiFile, -5, 5)) === '.json') {
-            $json = json_decode(file_get_contents(__DIR__ . '/../../vendor/' . $openApiFile), true);
+            $json = json_decode(file_get_contents($openApiFile), true);
             $openapi = new OpenApi($json);
         } else {
-            $yaml = Yaml::parse(file_get_contents(__DIR__ . '/../../vendor/' . $openApiFile));
+            $yaml = Yaml::parse(file_get_contents($openApiFile));
             $openapi = new OpenApi($yaml);
         }
         $openapi->setDocumentContext($openapi, new \cebe\openapi\json\JsonPointer(''));
