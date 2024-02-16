@@ -86,22 +86,22 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
                         } else {
                             // array
                             $this->_properties[$property] = [];
-                            foreach ($data[$property] as $item) {
+                            foreach ($data[$property] as $key => $item) {
                                 if ($type[0] === Type::STRING) {
                                     if (!is_string($item)) {
                                         $this->_errors[] = "property '$property' must be array of strings, but array has " . gettype($item) . " element.";
                                     }
-                                    $this->_properties[$property][] = $item;
+                                    $this->_properties[$property][$key] = $item;
                                 } elseif (Type::isScalar($type[0])) {
-                                    $this->_properties[$property][] = $item;
+                                    $this->_properties[$property][$key] = $item;
                                 } elseif ($type[0] === Type::ANY) {
                                     if (is_array($item) && isset($item['$ref'])) {
-                                        $this->_properties[$property][] = new Reference($item, null);
+                                        $this->_properties[$property][$key] = new Reference($item, null);
                                     } else {
-                                        $this->_properties[$property][] = $item;
+                                        $this->_properties[$property][$key] = $item;
                                     }
                                 } else {
-                                    $this->_properties[$property][] = $this->instantiate($type[0], $item);
+                                    $this->_properties[$property][$key] = $this->instantiate($type[0], $item);
                                 }
                             }
                         }
@@ -325,12 +325,22 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
         return isset($this->_properties[$name]);
     }
 
-    protected function requireProperties(array $names)
+    protected function requireProperties(array $names, array $atLeastOne = [])
     {
         foreach ($names as $name) {
             if (!isset($this->_properties[$name])) {
                 $this->addError(" is missing required property: $name", get_class($this));
             }
+        }
+
+        if (count($atLeastOne) > 0) {
+            foreach ($atLeastOne as $name) {
+                if (array_key_exists($name, $this->_properties)) {
+                    return;
+                }
+            }
+
+            $this->addError(" is missing at least one of the following required properties: " . implode(', ', $atLeastOne), get_class($this));
         }
     }
 

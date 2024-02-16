@@ -1,0 +1,3 @@
+yarn.lock export-ignore
+docker-compose.yml export-ignore
+Makefile export-ignore
