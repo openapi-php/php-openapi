@@ -55,7 +55,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
                     $this->_responses[$statusCode] = new Response($response);
                 } else {
                     $givenType = gettype($response);
-                    if ($givenType === 'object') {
+                    if (is_object($response)) {
                         $givenType = get_class($response);
                     }
                     throw new TypeErrorException(sprintf('Response MUST be either an array, a Response or a Reference object, "%s" given', $givenType));

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\ExternalDocumentation;
 use cebe\openapi\spec\Tag;
@@ -16,7 +21,7 @@ class TagTest extends \PHPUnit\Framework\TestCase
 name: pet
 description: Pets operations
 YAML
-        , Tag::class);
+            , Tag::class);
 
         $result = $tag->validate();
         $this->assertEquals([], $tag->getErrors());
@@ -32,7 +37,7 @@ description: Pets operations
 externalDocs:
   url: https://example.com
 YAML
-        , Tag::class);
+            , Tag::class);
 
         $result = $tag->validate();
         $this->assertEquals(['Tag is missing required property: name'], $tag->getErrors());

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OAuthFlow;
 use cebe\openapi\spec\OAuthFlows;
@@ -21,7 +26,7 @@ class SecuritySchemeTest extends \PHPUnit\Framework\TestCase
 type: http
 scheme: basic
 YAML
-        , SecurityScheme::class);
+            , SecurityScheme::class);
 
         $result = $securityScheme->validate();
         $this->assertEquals([], $securityScheme->getErrors());
@@ -34,7 +39,7 @@ YAML
         $securityScheme = Reader::readFromYaml(<<<YAML
 scheme: basic
 YAML
-        , SecurityScheme::class);
+            , SecurityScheme::class);
 
         $result = $securityScheme->validate();
         $this->assertEquals(['SecurityScheme is missing required property: type'], $securityScheme->getErrors());
@@ -173,7 +178,8 @@ YAML
 
     public function testDefaultSecurity()
     {
-        $openapi = Reader::readFromYaml(<<<YAML
+        $openapi = Reader::readFromYaml(
+            <<<YAML
 paths:
   /path/one:
     post:

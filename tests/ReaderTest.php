@@ -1,10 +1,16 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 class ReaderTest extends \PHPUnit\Framework\TestCase
 {
     public function testReadJson()
     {
-        $openapi = \cebe\openapi\Reader::readFromJson(<<<JSON
+        $openapi = \cebe\openapi\Reader::readFromJson(
+            <<<JSON
 {
   "openapi": "3.0.0",
   "info": {
@@ -23,7 +29,8 @@ JSON
 
     public function testReadYaml()
     {
-        $openapi = \cebe\openapi\Reader::readFromYaml(<<<YAML
+        $openapi = \cebe\openapi\Reader::readFromYaml(
+            <<<YAML
 openapi: 3.0.0
 info:
   title: "Test API"
@@ -124,7 +131,7 @@ YAML
   ]
 }
 JSON
-        , true);
+            , true);
         $this->assertEquals($expectedArray, $inlineYamlExample);
     }
 

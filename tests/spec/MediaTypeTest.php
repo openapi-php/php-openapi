@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\Example;
@@ -125,7 +130,8 @@ YAML
 
     public function testUnresolvedReferencesInEncoding()
     {
-        $yaml = Yaml::parse(<<<'YAML'
+        $yaml = Yaml::parse(
+            <<<'YAML'
 openapi: "3.0.0"
 info:
   version: 1.0.0
@@ -165,7 +171,7 @@ components:
         name:
           type: string
 YAML
-);
+        );
         $openapi = new OpenApi($yaml);
         $result = $openapi->validate();
 

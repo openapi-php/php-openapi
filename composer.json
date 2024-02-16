@@ -36,7 +36,10 @@
 
 		"mermade/openapi3-examples": "1.0.0",
 		"apis-guru/openapi-directory": "1.0.0",
-		"phpstan/phpstan": "^0.12.0"
+		"phpstan/phpstan": "^0.12.0",
+
+		"friendsofphp/php-cs-fixer": "^3.49.0",
+		"rector/rector": "^1.0"
 	},
 	"conflict": {
 		"symfony/yaml": "3.4.0 - 3.4.4 || 4.0.0 - 4.4.17 || 5.0.0 - 5.1.9 || 5.2.0"
@@ -45,6 +48,39 @@
 		"psr-4": {
 			"cebe\\openapi\\": "src/"
 		}
+	},
+	"scripts": {
+		"ci": [
+			"@lint",
+			"@test"
+		],
+		"ci-coverage": [
+			"@lint",
+			"@cs-check",
+			"@test-coverage",
+			"@stan",
+			"@rector-check"
+		],
+		"cs-check": "php-cs-fixer fix --diff --dry-run",
+		"cs-fix": [
+			"indent --tabs composer.json",
+			"php-cs-fixer fix --diff"
+		],
+		"stan": "phpstan analyse",
+		"test": "@php -dzend.assertions=1 ./vendor/bin/phpunit  --no-coverage",
+		"test-coverage": "@php -dxdebug.mode=coverage -dzend.assertions=1 ./vendor/bin/phpunit",
+		"rector-fix": [
+			"rector process",
+			"@cs-fix"
+		],
+		"rector-check": "rector process --dry-run",
+		"lint": [
+			"bin/php-openapi validate tests/spec/data/reference/playlist.json",
+			"bin/php-openapi validate tests/spec/data/recursion.json",
+			"bin/php-openapi validate tests/spec/data/recursion2.yaml",
+			"bin/php-openapi validate tests/spec/data/empty-maps.json"
+		]
+
 	},
 	"extra": {
 		"branch-alias": {

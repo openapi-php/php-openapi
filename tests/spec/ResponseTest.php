@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\Response;
@@ -29,7 +34,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
   }
 }
 JSON
-        , Response::class);
+            , Response::class);
 
         $result = $response->validate();
         $this->assertEquals([], $response->getErrors());
@@ -54,7 +59,7 @@ JSON
   }
 }
 JSON
-        , Response::class);
+            , Response::class);
 
         $result = $response->validate();
         $this->assertEquals([

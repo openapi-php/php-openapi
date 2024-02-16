@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Operation;
 use cebe\openapi\spec\PathItem;
@@ -41,7 +46,7 @@ class PathTest extends \PHPUnit\Framework\TestCase
   }
 }
 JSON
-        , Paths::class);
+            , Paths::class);
 
         $result = $paths->validate();
         $this->assertEquals([], $paths->getErrors());

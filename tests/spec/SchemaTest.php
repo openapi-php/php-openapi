@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\ReferenceContext;
 use cebe\openapi\spec\Discriminator;
@@ -22,7 +27,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
   "format": "email"
 }
 JSON
-        , Schema::class);
+            , Schema::class);
 
         $result = $schema->validate();
         $this->assertEquals([], $schema->getErrors());
@@ -128,7 +133,7 @@ JSON
   }
 }
 JSON
-        , Schema::class);
+            , Schema::class);
 
         $result = $schema->validate();
         $this->assertEquals([], $schema->getErrors());

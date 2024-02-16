@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Server;
 use cebe\openapi\spec\ServerVariable;
@@ -35,7 +40,7 @@ class ServerTest extends \PHPUnit\Framework\TestCase
   }
 }
 JSON
-        , Server::class);
+            , Server::class);
 
         $result = $server->validate();
         $this->assertEquals([], $server->getErrors());
@@ -73,7 +78,7 @@ JSON
   }
 }
 JSON
-        , Server::class);
+            , Server::class);
 
         $result = $server->validate();
         $this->assertEquals(['ServerVariable is missing required property: default'], $server->getErrors());

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Parameter;
 
@@ -217,7 +222,7 @@ YAML;
         foreach($goodCombinations as $in=>$styles) {
             foreach($styles as $style) {
                 /** @var $parameter Parameter */
-                $parameter = Reader::readFromYaml(sprintf($specTemplate, $in, $style) , Parameter::class);
+                $parameter = Reader::readFromYaml(sprintf($specTemplate, $in, $style), Parameter::class);
                 $result = $parameter->validate();
                 $this->assertEquals([], $parameter->getErrors());
                 $this->assertTrue($result);
@@ -228,7 +233,7 @@ YAML;
         foreach($badCombinations as $in=>$styles) {
             foreach($styles as $style) {
                 /** @var $parameter Parameter */
-                $parameter = Reader::readFromYaml(sprintf($specTemplate, $in, $style) , Parameter::class);
+                $parameter = Reader::readFromYaml(sprintf($specTemplate, $in, $style), Parameter::class);
                 $result = $parameter->validate();
                 $this->assertEquals(['A Parameter Object DOES NOT support this serialization style.'], $parameter->getErrors());
                 $this->assertFalse($result);

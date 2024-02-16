@@ -64,7 +64,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
                 $this->_paths[$path] = $object;
             } else {
                 $givenType = gettype($object);
-                if ($givenType === 'object') {
+                if (is_object($object)) {
                     $givenType = get_class($object);
                 }
                 throw new TypeErrorException(sprintf('Path MUST be either array or PathItem object, "%s" given', $givenType));

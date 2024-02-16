@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Parameter;
@@ -124,7 +129,7 @@ YAML
         $this->assertInstanceOf(Reference::class, $response->content['application/json']->schema);
         $this->assertInstanceOf(Reference::class, $response->content['application/json']->examples['frog']);
 
-//        $this->expectException(\cebe\openapi\exceptions\UnresolvableReferenceException::class);
+        //        $this->expectException(\cebe\openapi\exceptions\UnresolvableReferenceException::class);
         $openapi->resolveReferences(new \cebe\openapi\ReferenceContext($openapi, 'file:///tmp/openapi.yaml'));
 
         $this->assertInstanceOf(Schema::class, $petItems = $openapi->components->schemas['Pet']->properties['id']->items);

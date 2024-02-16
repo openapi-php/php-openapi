@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Link;
 
@@ -19,7 +24,7 @@ class LinkTest extends \PHPUnit\Framework\TestCase
     }
 }
 JSON
-        , Link::class);
+            , Link::class);
 
         $result = $link->validate();
         $this->assertEquals([], $link->getErrors());
@@ -41,7 +46,7 @@ JSON
     "operationRef": "getUserAddressRef"
 }
 JSON
-                , Link::class);
+            , Link::class);
 
         $result = $link->validate();
         $this->assertEquals([
