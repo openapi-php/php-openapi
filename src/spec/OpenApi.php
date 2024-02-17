@@ -87,11 +87,11 @@ final class OpenApi extends SpecBaseObject
         return [
             'openapi' => Type::STRING,
             'info' => Info::class,
+            'servers' => [Server::class],
             'paths' => Paths::class,
             'components' => Components::class,
             'externalDocs' => ExternalDocumentation::class,
             'security' => [SecurityRequirement::class],
-            'servers' => [Server::class],
             'tags' => [Tag::class],
             'webhooks' => [PathItem::class],
         ];
