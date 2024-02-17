@@ -1,9 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
+
+namespace OpenApiTest;
+
+use function date_default_timezone_set;
 
 require __DIR__ . '/../vendor/autoload.php';
 

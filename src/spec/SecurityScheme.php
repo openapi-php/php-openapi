@@ -1,13 +1,12 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
+
+use function in_array;
 
 /**
  * Defines a security scheme that can be used by the operations.
@@ -23,61 +22,61 @@ use cebe\openapi\SpecBaseObject;
  * @property OAuthFlows|null $flows
  * @property string $openIdConnectUrl
  */
-class SecurityScheme extends SpecBaseObject
+final class SecurityScheme extends SpecBaseObject
 {
-    private $knownTypes = [
-        "apiKey",
-        "http",
-        "oauth2",
-        "openIdConnect"
+    /** @var list<string> */
+    private array $knownTypes = [
+        'apiKey',
+        'http',
+        'oauth2',
+        'openIdConnect',
     ];
 
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
-            'type' => Type::STRING,
-            'description' => Type::STRING,
-            'name' => Type::STRING,
-            'in' => Type::STRING,
-            'scheme' => Type::STRING,
             'bearerFormat' => Type::STRING,
+            'description' => Type::STRING,
             'flows' => OAuthFlows::class,
+            'in' => Type::STRING,
+            'name' => Type::STRING,
             'openIdConnectUrl' => Type::STRING,
+            'scheme' => Type::STRING,
+            'type' => Type::STRING,
         ];
     }
 
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
         $this->requireProperties(['type']);
-        if (isset($this->type)) {
-            if (!in_array($this->type, $this->knownTypes)) {
-                $this->addError("Unknown Security Scheme type: $this->type");
-            } else {
-                switch ($this->type) {
-                    case "apiKey":
-                        $this->requireProperties(['name', 'in']);
-                        if (isset($this->in)) {
-                            if (!in_array($this->in, ["query", "header", "cookie"])) {
-                                $this->addError("Invalid value for Security Scheme property 'in': $this->in");
-                            }
-                        }
-                        break;
-                    case "http":
-                        $this->requireProperties(['scheme']);
-                        break;
-                    case "oauth2":
-                        $this->requireProperties(['flows']);
-                        break;
-                    case "openIdConnect":
-                        $this->requireProperties(['openIdConnectUrl']);
-                        break;
-                }
+        if ($this->type === null) {
+            return;
+        }
+
+        if (! in_array($this->type, $this->knownTypes)) {
+            $this->addError('Unknown Security Scheme type: ' . $this->type);
+        } else {
+            switch ($this->type) {
+                case 'apiKey':
+                    $this->requireProperties(['name', 'in']);
+                    if ($this->in !== null && ! in_array($this->in, ['query', 'header', 'cookie'])) {
+                        $this->addError('Invalid value for Security Scheme property \'in\': ' . $this->in);
+                    }
+
+                    break;
+                case 'http':
+                    $this->requireProperties(['scheme']);
+                    break;
+                case 'oauth2':
+                    $this->requireProperties(['flows']);
+                    break;
+                case 'openIdConnect':
+                    $this->requireProperties(['openIdConnectUrl']);
+                    break;
             }
         }
     }

@@ -1,19 +1,22 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Callback;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Callback::class)]
-class CallbackTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Callback;
+use openapiphp\openapi\spec\PathItem;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Callback::class)]
+class CallbackTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $callback \cebe\openapi\spec\Callback */
         $callback = Reader::readFromYaml(<<<'YAML'
 'http://notificationServer.com?transactionId={$request.body#/id}&email={$request.body#/email}':
   post:
@@ -28,13 +31,13 @@ class CallbackTest extends \PHPUnit\Framework\TestCase
         description: webhook successfully processed and no retries will be performed
 YAML
             , Callback::class);
+        assert($callback instanceof Callback);
 
         $result = $callback->validate();
         $this->assertEquals([], $callback->getErrors());
         $this->assertTrue($result);
 
         $this->assertEquals('http://notificationServer.com?transactionId={$request.body#/id}&email={$request.body#/email}', $callback->getUrl());
-        $this->assertInstanceOf(\cebe\openapi\spec\PathItem::class, $callback->getRequest());
+        $this->assertInstanceOf(PathItem::class, $callback->getRequest());
     }
-
 }

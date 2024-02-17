@@ -1,11 +1,24 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\json;
+namespace openapiphp\openapi\json;
+
+use ArrayAccess;
+use Stringable;
+
+use function array_key_exists;
+use function array_map;
+use function array_pop;
+use function explode;
+use function implode;
+use function is_array;
+use function is_object;
+use function preg_match;
+use function property_exists;
+use function sprintf;
+use function strtr;
+use function substr;
 
 /**
  * Represents a JSON Pointer (RFC 6901)
@@ -16,24 +29,24 @@ namespace cebe\openapi\json;
  * @link https://tools.ietf.org/html/rfc6901
  * @see JsonReference
  */
-final class JsonPointer implements \Stringable
+final class JsonPointer implements Stringable
 {
-    /**
-     * @var string
-     */
-    private $_pointer;
+    private readonly string $_pointer;
 
     /**
      * JSON Pointer constructor.
+     *
      * @param string $pointer The JSON Pointer.
      * Must be either an empty string (for referencing the whole document), or a string starting with `/`.
-     * @throws InvalidJsonPointerSyntaxException in case an invalid JSON pointer string is passed
+     *
+     * @throws InvalidJsonPointerSyntaxException in case an invalid JSON pointer string is passed.
      */
     public function __construct(string $pointer)
     {
-        if (!preg_match('~^(/[^/]*)*$~', $pointer)) {
-            throw new InvalidJsonPointerSyntaxException("Invalid JSON Pointer syntax: $pointer");
+        if (! preg_match('~^(/[^/]*)*$~', $pointer)) {
+            throw new InvalidJsonPointerSyntaxException('Invalid JSON Pointer syntax: ' . $pointer);
         }
+
         $this->_pointer = $pointer;
     }
 
@@ -42,51 +55,54 @@ final class JsonPointer implements \Stringable
         return $this->_pointer;
     }
 
-    /**
-     * @return string returns the JSON Pointer.
-     */
+    /** @return string returns the JSON Pointer. */
     public function getPointer(): string
     {
         return $this->_pointer;
     }
 
-    /**
-     * @return array the JSON pointer path as array.
-     */
+    /** @return list<string> the JSON pointer path as array. */
     public function getPath(): array
     {
         if ($this->_pointer === '') {
             return [];
         }
+
         $pointer = substr($this->_pointer, 1);
+
         return array_map([self::class, 'decode'], explode('/', $pointer));
     }
 
     /**
      * Append a new part to the JSON path.
+     *
      * @param string $subpath the path element to append.
+     *
      * @return JsonPointer a new JSON pointer pointing to the subpath.
      */
     public function append(string $subpath): JsonPointer
     {
-        return new JsonPointer($this->_pointer . '/' . static::encode($subpath));
+        return new JsonPointer($this->_pointer . '/' . self::encode($subpath));
     }
 
     /**
      * Returns a JSON pointer to the parent path element of this pointer.
+     *
      * @return JsonPointer|null a new JSON pointer pointing to the parent element
      * or null if this pointer already points to the document root.
      */
-    public function parent(): ?JsonPointer
+    public function parent(): JsonPointer|null
     {
         $path = $this->getPath();
-        if (empty($path)) {
+        if ($path === []) {
             return null;
         }
+
         array_pop($path);
-        if (empty($path)) {
+        if ($path === []) {
             return new JsonPointer('');
         }
+
         return new JsonPointer('/' . implode('/', array_map([self::class, 'encode'], $path)));
     }
 
@@ -96,13 +112,12 @@ final class JsonPointer implements \Stringable
      * Note that this does only resolve the JSON Pointer, it will not load external
      * documents by URI. Loading the Document from the URI is supposed to be done outside of this class.
      *
-     * @return mixed
      * @throws NonexistentJsonPointerReferenceException
      */
-    public function evaluate(mixed $jsonDocument)
+    public function evaluate(mixed $jsonDocument): mixed
     {
         $currentReference = $jsonDocument;
-        $currentPath = '';
+        $currentPath      = '';
 
         foreach ($this->getPath() as $part) {
             if (is_array($currentReference)) {
@@ -111,33 +126,36 @@ final class JsonPointer implements \Stringable
                 //                        "Failed to evaluate pointer '$this->_pointer'. Invalid pointer path '$part' for Array at path '$currentPath'."
                 //                    );
                 //                }
-                if ($part === '-' || !array_key_exists($part, $currentReference)) {
+                if ($part === '-' || ! array_key_exists($part, $currentReference)) {
                     throw new NonexistentJsonPointerReferenceException(
-                        "Failed to evaluate pointer '$this->_pointer'. Array has no member $part at path '$currentPath'."
+                        sprintf('Failed to evaluate pointer \'%s\'. Array has no member %s at path \'%s\'.', $this->_pointer, $part, $currentPath),
                     );
                 }
+
                 $currentReference = $currentReference[$part];
-            } elseif ($currentReference instanceof \ArrayAccess) {
-                if (!$currentReference->offsetExists($part)) {
+            } elseif ($currentReference instanceof ArrayAccess) {
+                if (! $currentReference->offsetExists($part)) {
                     throw new NonexistentJsonPointerReferenceException(
-                        "Failed to evaluate pointer '$this->_pointer'. Array has no member $part at path '$currentPath'."
+                        sprintf('Failed to evaluate pointer \'%s\'. Array has no member %s at path \'%s\'.', $this->_pointer, $part, $currentPath),
                     );
                 }
+
                 $currentReference = $currentReference[$part];
             } elseif (is_object($currentReference)) {
-                if (!isset($currentReference->$part) && !property_exists($currentReference, $part)) {
+                if (! isset($currentReference->$part) && ! property_exists($currentReference, $part)) {
                     throw new NonexistentJsonPointerReferenceException(
-                        "Failed to evaluate pointer '$this->_pointer'. Object has no member $part at path '$currentPath'."
+                        sprintf('Failed to evaluate pointer \'%s\'. Object has no member %s at path \'%s\'.', $this->_pointer, $part, $currentPath),
                     );
                 }
+
                 $currentReference = $currentReference->$part;
             } else {
                 throw new NonexistentJsonPointerReferenceException(
-                    "Failed to evaluate pointer '$this->_pointer'. Value at path '$currentPath' is neither an array nor an object."
+                    sprintf('Failed to evaluate pointer \'%s\'. Value at path \'%s\' is neither an array nor an object.', $this->_pointer, $currentPath),
                 );
             }
 
-            $currentPath = "$currentPath/$part";
+            $currentPath = sprintf('%s/%s', $currentPath, $part);
         }
 
         return $currentReference;

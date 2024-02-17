@@ -1,31 +1,40 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\ReferenceContext;
-use cebe\openapi\spec\Discriminator;
-use cebe\openapi\spec\Reference;
-use cebe\openapi\spec\Schema;
-use cebe\openapi\spec\Type;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Schema::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Discriminator::class)]
-class SchemaTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\ReferenceContext;
+use openapiphp\openapi\spec\Discriminator;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Schema;
+use openapiphp\openapi\spec\Type;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use stdClass;
+
+use function array_keys;
+use function assert;
+use function is_array;
+use function sprintf;
+
+#[CoversClass(Schema::class)]
+#[CoversClass(Discriminator::class)]
+class SchemaTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $schema Schema */
-        $schema = Reader::readFromJson(<<<JSON
+        $schema = Reader::readFromJson(<<<'JSON'
 {
   "type": "string",
   "format": "email"
 }
 JSON
             , Schema::class);
+        assert($schema instanceof Schema);
 
         $result = $schema->validate();
         $this->assertEquals([], $schema->getErrors());
@@ -48,18 +57,18 @@ JSON
 
     public function testNullable(): void
     {
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "string"}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertEquals(Type::STRING, $schema->type);
         $this->assertFalse($schema->nullable);
 
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "string", "nullable": false}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertEquals(Type::STRING, $schema->type);
         $this->assertFalse($schema->nullable);
 
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "string", "nullable": true}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertEquals(Type::STRING, $schema->type);
         $this->assertTrue($schema->nullable);
 
@@ -71,36 +80,36 @@ JSON
 
     public function testMinMax(): void
     {
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "integer"}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertNull($schema->minimum);
         $this->assertNull($schema->exclusiveMinimum);
         $this->assertNull($schema->maximum);
         $this->assertNull($schema->exclusiveMaximum);
 
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "integer", "minimum": 1}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertEquals(1, $schema->minimum);
         $this->assertFalse($schema->exclusiveMinimum);
         $this->assertNull($schema->maximum);
         $this->assertNull($schema->exclusiveMaximum);
 
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "integer", "minimum": 1, "exclusiveMinimum": true}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertEquals(1, $schema->minimum);
         $this->assertTrue($schema->exclusiveMinimum);
         $this->assertNull($schema->maximum);
         $this->assertNull($schema->exclusiveMaximum);
 
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "integer", "maximum": 10}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertEquals(10, $schema->maximum);
         $this->assertFalse($schema->exclusiveMaximum);
         $this->assertNull($schema->minimum);
         $this->assertNull($schema->exclusiveMinimum);
 
-        /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "integer", "maximum": 10, "exclusiveMaximum": true}', Schema::class);
+        assert($schema instanceof Schema);
         $this->assertEquals(10, $schema->maximum);
         $this->assertTrue($schema->exclusiveMaximum);
         $this->assertNull($schema->minimum);
@@ -109,7 +118,6 @@ JSON
 
     public function testReadObject(): void
     {
-        /** @var $schema Schema */
         $schema = Reader::readFromJson(<<<'JSON'
 {
   "type": "object",
@@ -132,6 +140,7 @@ JSON
 }
 JSON
             , Schema::class);
+        assert($schema instanceof Schema);
 
         $result = $schema->validate();
         $this->assertEquals([], $schema->getErrors());
@@ -160,7 +169,6 @@ JSON
 
     public function testDiscriminator(): void
     {
-        /** @var $schema Schema */
         $schema = Reader::readFromYaml(<<<'YAML'
 oneOf:
   - $ref: '#/components/schemas/Cat'
@@ -172,14 +180,12 @@ discriminator:
     dog: Dog
 YAML
             , Schema::class);
+        assert($schema instanceof Schema);
 
         $result = $schema->validate();
-        $this->assertEquals([
-            'Discriminator is missing required property: propertyName'
-        ], $schema->getErrors());
+        $this->assertEquals(['Discriminator is missing required property: propertyName'], $schema->getErrors());
         $this->assertFalse($result);
 
-        /** @var $schema Schema */
         $schema = Reader::readFromYaml(<<<'YAML'
 oneOf:
   - $ref: '#/components/schemas/Cat'
@@ -192,6 +198,7 @@ discriminator:
     monster: https://gigantic-server.com/schemas/Monster/schema.json
 YAML
             , Schema::class);
+        assert($schema instanceof Schema);
 
         $result = $schema->validate();
         $this->assertEquals([], $schema->getErrors());
@@ -212,9 +219,7 @@ YAML
                 new Schema(['type' => 'integer']),
                 new Schema(['type' => 'string']),
             ],
-            'additionalProperties' => new Schema([
-                'type' => 'object',
-            ]),
+            'additionalProperties' => new Schema(['type' => 'object']),
             'discriminator' => new Discriminator([
                 'mapping' => ['A' => 'B'],
             ]),
@@ -227,13 +232,13 @@ YAML
         $this->assertSame(['A' => 'B'], $schema->discriminator->mapping);
     }
 
-
-    public static function badSchemaProvider()
+    /** @return iterable<array<string, mixed>|string> */
+    public static function badSchemaProvider(): iterable
     {
-        yield [['properties' => ['a' => 'foo']], 'Unable to instantiate cebe\openapi\spec\Schema Object with data \'foo\''];
-        yield [['properties' => ['a' => 42]], 'Unable to instantiate cebe\openapi\spec\Schema Object with data \'42\''];
-        yield [['properties' => ['a' => false]], 'Unable to instantiate cebe\openapi\spec\Schema Object with data \'\''];
-        yield [['properties' => ['a' => new stdClass()]], "Unable to instantiate cebe\openapi\spec\Schema Object with data 'stdClass Object\n(\n)\n'"];
+        yield [['properties' => ['a' => 'foo']], 'Unable to instantiate openapiphp\openapi\spec\Schema Object with data \'foo\''];
+        yield [['properties' => ['a' => 42]], 'Unable to instantiate openapiphp\openapi\spec\Schema Object with data \'42\''];
+        yield [['properties' => ['a' => false]], 'Unable to instantiate openapiphp\openapi\spec\Schema Object with data \'\''];
+        yield [['properties' => ['a' => new stdClass()]], "Unable to instantiate openapiphp\openapi\spec\Schema Object with data 'stdClass Object\n(\n)\n'"];
 
         yield [['additionalProperties' => 'foo'], 'Schema::$additionalProperties MUST be either boolean or a Schema/Reference object, "string" given'];
         yield [['additionalProperties' => 42], 'Schema::$additionalProperties MUST be either boolean or a Schema/Reference object, "integer" given'];
@@ -241,10 +246,11 @@ YAML
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('badSchemaProvider')]
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
+    /** @param  array<string, mixed> $config */
+    #[DataProvider('badSchemaProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit(array $config, string $expectedException): void
     {
-        $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
+        $this->expectException(TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);
 
         new Schema($config);
@@ -252,7 +258,7 @@ YAML
 
     public function testAllOf(): void
     {
-        $json = <<<'JSON'
+        $json    = <<<'JSON'
 {
   "components": {
     "schemas": {
@@ -303,7 +309,7 @@ JSON;
      */
     public function testSchemaProperties(): void
     {
-        $schema = new Schema([]);
+        $schema          = new Schema([]);
         $validProperties = [
             // https://github.com/OAI/OpenAPI-Specification/blob/3.0.2/versions/3.0.2.md#schema-object
             // The following properties are taken directly from the JSON Schema definition and follow the same specifications:
@@ -345,14 +351,14 @@ JSON;
             'deprecated' => false,
         ];
 
-        foreach($validProperties as $property => $defaultValue) {
-            $this->assertEquals($defaultValue, $schema->$property, "testing property '$property'");
+        foreach ($validProperties as $property => $defaultValue) {
+            $this->assertEquals($defaultValue, $schema->$property, sprintf('testing property \'%s\'', $property));
         }
     }
 
     public function testRefAdditionalProperties(): void
     {
-        $json = <<<'JSON'
+        $json    = <<<'JSON'
 {
   "components": {
     "schemas": {
@@ -389,11 +395,12 @@ JSON;
 
     /**
      * Ensure that a property named "$ref" is not interpreted as a reference.
+     *
      * @link https://github.com/OAI/OpenAPI-Specification/issues/2173
      */
     public function testPropertyNameRef(): void
     {
-        $json = <<<'JSON'
+        $json    = <<<'JSON'
 {
   "components": {
     "schemas": {
@@ -424,7 +431,7 @@ JSON;
 
     public function testArrayKeyIsPerseveredInPropertiesThatAreArrays(): void
     {
-        $json = <<<'JSON'
+        $json    = <<<'JSON'
 {
   "webhooks": {
     "branch-protection-rule-created": {

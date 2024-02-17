@@ -1,16 +1,40 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\Reader;
+namespace OpenApiTest\spec;
+
+use openapiphp\openapi\json\JsonPointer;
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Components;
+use openapiphp\openapi\spec\ExternalDocumentation;
+use openapiphp\openapi\spec\Info;
+use openapiphp\openapi\spec\License;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\PathItem;
+use openapiphp\openapi\spec\Paths;
+use openapiphp\openapi\spec\SecurityRequirement;
+use openapiphp\openapi\spec\Server;
+use openapiphp\openapi\spec\Tag;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Yaml;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\OpenApi::class)]
-class OpenApiTest extends \PHPUnit\Framework\TestCase
+use function array_merge;
+use function assert;
+use function file_get_contents;
+use function json_decode;
+use function print_r;
+use function sprintf;
+use function str_contains;
+use function strtolower;
+use function substr;
+
+#[CoversClass(OpenApi::class)]
+class OpenApiTest extends TestCase
 {
     public function testEmpty(): void
     {
@@ -34,7 +58,7 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
     {
         $openApiFile = __DIR__ . '/../../vendor/oai/openapi-specification-3.0/examples/v3.0/petstore.yaml';
 
-        $yaml = Yaml::parse(file_get_contents($openApiFile));
+        $yaml    = Yaml::parse(file_get_contents($openApiFile));
         $openapi = new OpenApi($yaml);
 
         $result = $openapi->validate();
@@ -45,54 +69,53 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('3.0.0', $openapi->openapi);
 
         // info
-        $this->assertInstanceOf(\cebe\openapi\spec\Info::class, $openapi->info);
+        $this->assertInstanceOf(Info::class, $openapi->info);
         $this->assertEquals('1.0.0', $openapi->info->version);
         $this->assertEquals('Swagger Petstore', $openapi->info->title);
         // info.license
-        $this->assertInstanceOf(\cebe\openapi\spec\License::class, $openapi->info->license);
+        $this->assertInstanceOf(License::class, $openapi->info->license);
         $this->assertEquals('MIT', $openapi->info->license->name);
         // info.contact
         $this->assertNull($openapi->info->contact);
 
-
         // servers
-        if (method_exists($this, 'assertIsArray')) {
-            $this->assertIsArray($openapi->servers);
-        } else {
-            $this->assertInternalType('array', $openapi->servers);
-        }
+        $this->assertIsArray($openapi->servers);
 
         $this->assertCount(1, $openapi->servers);
         foreach ($openapi->servers as $server) {
-            $this->assertInstanceOf(\cebe\openapi\spec\Server::class, $server);
+            $this->assertInstanceOf(Server::class, $server);
             $this->assertEquals('http://petstore.swagger.io/v1', $server->url);
-
         }
 
         // paths
-        $this->assertInstanceOf(\cebe\openapi\spec\Paths::class, $openapi->paths);
+        $this->assertInstanceOf(Paths::class, $openapi->paths);
 
         // components
-        $this->assertInstanceOf(\cebe\openapi\spec\Components::class, $openapi->components);
+        $this->assertInstanceOf(Components::class, $openapi->components);
 
         // security
-        $this->assertAllInstanceOf(\cebe\openapi\spec\SecurityRequirement::class, $openapi->security);
+        $this->assertAllInstanceOf(SecurityRequirement::class, $openapi->security);
 
         // tags
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Tag::class, $openapi->tags);
+        $this->assertAllInstanceOf(Tag::class, $openapi->tags);
 
         // externalDocs
         $this->assertNull($openapi->externalDocs);
     }
 
-    public function assertAllInstanceOf($className, $array): void
+    /**
+     * @param class-string          $className
+     * @param array<string, string> $array
+     */
+    public function assertAllInstanceOf(string $className, array $array): void
     {
-        foreach($array as $k => $v) {
-            $this->assertInstanceOf($className, $v, "Asserting that item with key '$k' is instance of $className");
+        foreach ($array as $k => $v) {
+            $this->assertInstanceOf($className, $v, sprintf('Asserting that item with key \'%s\' is instance of %s', $k, $className));
         }
     }
 
-    public static function specProvider()
+    /** @return iterable<string> */
+    public static function specProvider(): iterable
     {
         // examples from https://github.com/OAI/OpenAPI-Specification/tree/master/examples/v3.0
         $oaiExamples = [
@@ -152,27 +175,30 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
 
         // examples from https://github.com/APIs-guru/openapi-directory/tree/openapi3.0.0/APIs
         $apisGuruExamples = [];
-        /** @var $it RecursiveDirectoryIterator|RecursiveIteratorIterator */
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../../vendor/apis-guru/openapi-directory/APIs'));
+        $it               = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../../vendor/apis-guru/openapi-directory/APIs'));
+        assert($it instanceof RecursiveDirectoryIterator || $it instanceof RecursiveIteratorIterator);
         $it->rewind();
-        while($it->valid()) {
+        while ($it->valid()) {
             if ($it->getBasename() === 'openapi.yaml') {
                 $apisGuruExamples[] = $it->key();
             }
+
             $it->next();
         }
 
         $nexmoExamples = [];
-        /** @var $it RecursiveDirectoryIterator|RecursiveIteratorIterator */
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../resources/definitions'));
+        $it            = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../resources/definitions'));
+        assert($it instanceof RecursiveDirectoryIterator || $it instanceof RecursiveIteratorIterator);
         $it->rewind();
-        while($it->valid()) {
-            if ($it->getExtension() === 'yml'
-             && !str_contains($it->getSubPath(), 'common')
-             && $it->getBasename() !== 'voice.v2.yml' // contains invalid references
+        while ($it->valid()) {
+            if (
+                $it->getExtension() === 'yml'
+                && ! str_contains((string) $it->getSubPath(), 'common')
+                && $it->getBasename() !== 'voice.v2.yml' // contains invalid references
             ) {
                 $nexmoExamples[] = $it->key();
             }
+
             $it->next();
         }
 
@@ -180,26 +206,25 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
             $oaiExamples,
             $mermadeExamples,
             $apisGuruExamples,
-            $nexmoExamples
+            $nexmoExamples,
         );
-        foreach($all as $path) {
-            yield $path => [
-                $path
-            ];
+        foreach ($all as $path) {
+            yield $path => [$path];
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('specProvider')]
-    public function testSpecs($openApiFile): void
+    #[DataProvider('specProvider')]
+    public function testSpecs(string $openApiFile): void
     {
-        if (strtolower(substr((string) $openApiFile, -5, 5)) === '.json') {
-            $json = json_decode(file_get_contents($openApiFile), true);
+        if (strtolower(substr($openApiFile, -5, 5)) === '.json') {
+            $json    = json_decode(file_get_contents($openApiFile), true);
             $openapi = new OpenApi($json);
         } else {
-            $yaml = Yaml::parse(file_get_contents($openApiFile));
+            $yaml    = Yaml::parse(file_get_contents($openApiFile));
             $openapi = new OpenApi($yaml);
         }
-        $openapi->setDocumentContext($openapi, new \cebe\openapi\json\JsonPointer(''));
+
+        $openapi->setDocumentContext($openapi, new JsonPointer(''));
 
         $result = $openapi->validate();
         $this->assertEquals([], $openapi->getErrors(), print_r($openapi->getErrors(), true));
@@ -209,42 +234,43 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
         $this->assertNotSame(OpenApi::VERSION_UNSUPPORTED, $openapi->getMajorVersion());
 
         // info
-        $this->assertInstanceOf(\cebe\openapi\spec\Info::class, $openapi->info);
+        $this->assertInstanceOf(Info::class, $openapi->info);
 
         // servers
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Server::class, $openapi->servers);
+        $this->assertAllInstanceOf(Server::class, $openapi->servers);
 
         // paths
         if ($openapi->paths !== null) {
-            $this->assertInstanceOf(\cebe\openapi\spec\Paths::class, $openapi->paths);
+            $this->assertInstanceOf(Paths::class, $openapi->paths);
         }
 
         // webhooks
         if ($openapi->webhooks !== null) {
-            $this->assertAllInstanceOf(\cebe\openapi\spec\PathItem::class, $openapi->webhooks);
+            $this->assertAllInstanceOf(PathItem::class, $openapi->webhooks);
         }
 
         // components
         if ($openapi->components !== null) {
-            $this->assertInstanceOf(\cebe\openapi\spec\Components::class, $openapi->components);
+            $this->assertInstanceOf(Components::class, $openapi->components);
         }
 
         // security
-        $this->assertAllInstanceOf(\cebe\openapi\spec\SecurityRequirement::class, $openapi->security);
+        $this->assertAllInstanceOf(SecurityRequirement::class, $openapi->security);
 
         // tags
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Tag::class, $openapi->tags);
+        $this->assertAllInstanceOf(Tag::class, $openapi->tags);
 
         // externalDocs
-        if ($openapi->externalDocs !== null) {
-            $this->assertInstanceOf(\cebe\openapi\spec\ExternalDocumentation::class, $openapi->externalDocs);
+        if ($openapi->externalDocs === null) {
+            return;
         }
 
+        $this->assertInstanceOf(ExternalDocumentation::class, $openapi->externalDocs);
     }
 
     public function testVersions(): void
     {
-        $yaml = <<<YAML
+        $yaml    = <<<'YAML'
 openapi: 3.0.2
 info:
   title: Test API
@@ -255,7 +281,7 @@ YAML;
         $this->assertTrue($openapi->validate(), print_r($openapi->getErrors(), true));
         $this->assertEquals('3.0', $openapi->getMajorVersion());
 
-        $yaml = <<<YAML
+        $yaml    = <<<'YAML'
 openapi: 3.1.0
 info:
   title: Test API
@@ -265,7 +291,5 @@ YAML;
         $openapi = Reader::readFromYaml($yaml);
         $this->assertTrue($openapi->validate(), print_r($openapi->getErrors(), true));
         $this->assertEquals('3.1', $openapi->getMajorVersion());
-
-
     }
 }

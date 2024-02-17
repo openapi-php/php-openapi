@@ -1,8 +1,8 @@
 {
-	"name": "devizzent/cebe-php-openapi",
-	"description": "Read and write OpenAPI yaml/json files and make the content accessable in PHP objects.",
+	"name": "php-openapi/openapi",
+	"description": "Read and write OpenAPI yaml/json files and make the content accessible in PHP objects.",
 	"keywords": ["openapi"],
-	"homepage": "https://github.com/DEVizzent/cebe-php-openapi#readme",
+	"homepage": "https://github.com/openapi-php/php-openapi",
 	"type": "library",
 	"license": "MIT",
 	"authors": [
@@ -18,8 +18,8 @@
 		}
 	],
 	"support": {
-		"issues": "https://github.com/DEVizzent/cebe-php-openapi/issues",
-		"source": "https://github.com/DEVizzent/cebe-php-openapi"
+		"issues": "https://github.com/openapi-php/php-openapi/issues",
+		"source": "https://github.com/openapi-php/php-openapi"
 	},
 	"require": {
 		"php": "^8.1 || ^8.2 || ^8.3",
@@ -37,13 +37,17 @@
 		"mermade/openapi3-examples": "1.0.0",
 		"apis-guru/openapi-directory": "1.0.0",
 		"phpstan/phpstan": "^1.10.0",
-
-		"friendsofphp/php-cs-fixer": "^3.49.0",
-		"rector/rector": "^1.0"
+		"rector/rector": "^1.0",
+		"doctrine/coding-standard": "^12.0"
 	},
 	"autoload": {
 		"psr-4": {
-			"cebe\\openapi\\": "src/"
+			"openapiphp\\openapi\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"OpenApiTest\\": "tests"
 		}
 	},
 	"scripts": {
@@ -58,12 +62,13 @@
 			"@stan",
 			"@rector-check"
 		],
-		"cs-check": "php-cs-fixer fix --diff --dry-run",
+		"cs-check": "phpcs",
 		"cs-fix": [
 			"indent --tabs composer.json",
-			"php-cs-fixer fix --diff"
+			"phpcbf"
 		],
 		"stan": "phpstan analyse",
+		"stan-baseline": "@php -dzend.assertions=-1 vendor/bin/phpstan analyse --generate-baseline phpstan-baseline.php",
 		"test": "@php -dzend.assertions=1 ./vendor/bin/phpunit  --no-coverage",
 		"test-coverage": "@php -dxdebug.mode=coverage -dzend.assertions=1 ./vendor/bin/phpunit",
 		"rector-fix": [
@@ -72,17 +77,13 @@
 		],
 		"rector-check": "rector process --dry-run",
 		"lint": [
+			"find src -name \"*.php\" -print0 | xargs -0 -n1 -P4 php -ln | (! grep -v \"No syntax errors detected\" )",
 			"bin/php-openapi validate tests/spec/data/reference/playlist.json",
 			"bin/php-openapi validate tests/spec/data/recursion.json",
 			"bin/php-openapi validate tests/spec/data/recursion2.yaml",
 			"bin/php-openapi validate tests/spec/data/empty-maps.json"
 		]
 
-	},
-	"extra": {
-		"branch-alias": {
-			"dev-master": "1.6.x-dev"
-		}
 	},
 	"bin": [
 		"bin/php-openapi"
@@ -135,5 +136,10 @@
 				}
 			}
 		}
-	]
+	],
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
 }

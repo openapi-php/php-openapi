@@ -1,21 +1,27 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Operation;
-use cebe\openapi\spec\ExternalDocumentation;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Operation::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\ExternalDocumentation::class)]
-class OperationTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\ExternalDocumentation;
+use openapiphp\openapi\spec\Operation;
+use openapiphp\openapi\spec\Parameter;
+use openapiphp\openapi\spec\RequestBody;
+use openapiphp\openapi\spec\Responses;
+use openapiphp\openapi\spec\SecurityRequirement;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Operation::class)]
+#[CoversClass(ExternalDocumentation::class)]
+class OperationTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $operation Operation */
         $operation = Reader::readFromYaml(<<<'YAML'
 tags:
 - pet
@@ -61,6 +67,7 @@ externalDocs:
   url: https://example.com
 YAML
             , Operation::class);
+        assert($operation instanceof Operation);
 
         $result = $operation->validate();
         $this->assertEquals([], $operation->getErrors());
@@ -73,17 +80,17 @@ YAML
         $this->assertEquals('updatePetWithForm', $operation->operationId);
 
         $this->assertCount(1, $operation->parameters);
-        $this->assertInstanceOf(\cebe\openapi\spec\Parameter::class, $operation->parameters[0]);
+        $this->assertInstanceOf(Parameter::class, $operation->parameters[0]);
         $this->assertEquals('petId', $operation->parameters[0]->name);
 
-        $this->assertInstanceOf(\cebe\openapi\spec\RequestBody::class, $operation->requestBody);
+        $this->assertInstanceOf(RequestBody::class, $operation->requestBody);
         $this->assertCount(1, $operation->requestBody->content);
         $this->assertArrayHasKey('application/x-www-form-urlencoded', $operation->requestBody->content);
 
-        $this->assertInstanceOf(\cebe\openapi\spec\Responses::class, $operation->responses);
+        $this->assertInstanceOf(Responses::class, $operation->responses);
 
         $this->assertCount(1, $operation->security);
-        $this->assertInstanceOf(\cebe\openapi\spec\SecurityRequirement::class, $operation->security[0]);
+        $this->assertInstanceOf(SecurityRequirement::class, $operation->security[0]);
         $this->assertCount(2, $operation->security[0]->petstore_auth);
         $this->assertEquals(['write:pets', 'read:pets'], $operation->security[0]->petstore_auth);
 

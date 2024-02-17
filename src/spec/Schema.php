@@ -1,14 +1,17 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\exceptions\TypeErrorException;
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\SpecBaseObject;
+
+use function gettype;
+use function is_array;
+use function is_bool;
+use function is_object;
+use function sprintf;
 
 /**
  * The Schema Object allows the definition of input and output data types.
@@ -60,13 +63,10 @@ use cebe\openapi\SpecBaseObject;
  * @property ExternalDocumentation|null $externalDocs
  * @property mixed $example
  * @property bool $deprecated
- *
  */
 class Schema extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
@@ -90,12 +90,12 @@ class Schema extends SpecBaseObject
             'enum' => [Type::ANY],
             // The following properties are taken from the JSON Schema definition but their definitions were adjusted to the OpenAPI Specification.
             'type' => Type::STRING,
-            'allOf' => [Schema::class],
-            'oneOf' => [Schema::class],
-            'anyOf' => [Schema::class],
-            'not' => Schema::class,
-            'items' => Schema::class,
-            'properties' => [Type::STRING, Schema::class],
+            'allOf' => [self::class],
+            'oneOf' => [self::class],
+            'anyOf' => [self::class],
+            'not' => self::class,
+            'items' => self::class,
+            'properties' => [Type::STRING, self::class],
             //'additionalProperties' => 'boolean' | ['string', Schema::class], handled in constructor
             'description' => Type::STRING,
             'format' => Type::STRING,
@@ -112,9 +112,7 @@ class Schema extends SpecBaseObject
         ];
     }
 
-    /**
-     * @return array array of attributes default values.
-     */
+    /** @inheritDoc */
     protected function attributeDefaults(): array
     {
         return [
@@ -133,31 +131,29 @@ class Schema extends SpecBaseObject
         ];
     }
 
-    /**
-     * Create an object from spec data.
-     * @param array $data spec data read from YAML or JSON
-     * @throws TypeErrorException in case invalid data is supplied.
-     */
+    /** @inheritDoc */
     public function __construct(array $data)
     {
         if (isset($data['additionalProperties'])) {
             if (is_array($data['additionalProperties'])) {
-                $data['additionalProperties'] = $this->instantiate(Schema::class, $data['additionalProperties']);
-            } elseif (!($data['additionalProperties'] instanceof Schema || $data['additionalProperties'] instanceof Reference || is_bool($data['additionalProperties']))) {
+                $data['additionalProperties'] = $this->instantiate(self::class, $data['additionalProperties']);
+            } elseif (! ($data['additionalProperties'] instanceof Schema || $data['additionalProperties'] instanceof Reference || is_bool($data['additionalProperties']))) {
                 $givenType = gettype($data['additionalProperties']);
-                if ($givenType === 'object') {
+                if ($givenType === 'object' && is_object($data['additionalProperties'])) {
                     $givenType = $data['additionalProperties']::class;
                 }
+
                 throw new TypeErrorException(sprintf('Schema::$additionalProperties MUST be either boolean or a Schema/Reference object, "%s" given', $givenType));
             }
         }
+
         parent::__construct($data);
     }
 
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
     }
 }

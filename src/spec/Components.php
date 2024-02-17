@@ -1,13 +1,15 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
+
+use function array_keys;
+use function is_array;
+use function preg_match;
+use function sprintf;
 
 /**
  * Holds a set of reusable objects for different aspects of the OAS.
@@ -17,51 +19,57 @@ use cebe\openapi\SpecBaseObject;
  *
  * @link https://github.com/OAI/OpenAPI-Specification/blob/3.0.2/versions/3.0.2.md#componentsObject
  *
- * @property Schema[]|Reference[] $schemas
- * @property Response[]|Reference[] $responses
- * @property Parameter[]|Reference[] $parameters
- * @property Example[]|Reference[] $examples
- * @property RequestBody[]|Reference[] $requestBodies
- * @property Header[]|Reference[] $headers
- * @property SecurityScheme[]|Reference[] $securitySchemes
- * @property Link[]|Reference[] $links
- * @property Callback[]|Reference[] $callbacks
- *
- *
+ * @property array<Schema>|array<Reference> $schemas
+ * @property array<Response>|array<Reference> $responses
+ * @property array<Parameter>|array<Reference> $parameters
+ * @property array<Example>|array<Reference> $examples
+ * @property array<RequestBody>|array<Reference> $requestBodies
+ * @property array<Header>|array<Reference> $headers
+ * @property array<SecurityScheme>|array<Reference> $securitySchemes
+ * @property array<Link>|array<Reference> $links
+ * @property array<Callback>|array<Reference> $callbacks
  */
-class Components extends SpecBaseObject
+final class Components extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
-            'schemas' => [Type::STRING, Schema::class],
-            'responses' => [Type::STRING, Response::class],
-            'parameters' => [Type::STRING, Parameter::class],
-            'examples' => [Type::STRING, Example::class],
-            'requestBodies' => [Type::STRING, RequestBody::class],
-            'headers' => [Type::STRING, Header::class],
-            'securitySchemes' => [Type::STRING, SecurityScheme::class],
-            'links' => [Type::STRING, Link::class],
             'callbacks' => [Type::STRING, Callback::class],
+            'examples' => [Type::STRING, Example::class],
+            'headers' => [Type::STRING, Header::class],
+            'links' => [Type::STRING, Link::class],
+            'parameters' => [Type::STRING, Parameter::class],
+            'requestBodies' => [Type::STRING, RequestBody::class],
+            'responses' => [Type::STRING, Response::class],
+            'schemas' => [Type::STRING, Schema::class],
+            'securitySchemes' => [Type::STRING, SecurityScheme::class],
         ];
     }
 
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
         // All the fixed fields declared above are objects that MUST use keys that match the regular expression: ^[a-zA-Z0-9\.\-_]+$.
         foreach (array_keys($this->attributes()) as $attribute) {
-            if (is_array($this->$attribute)) {
-                foreach ($this->$attribute as $k => $v) {
-                    if (!preg_match('~^[a-zA-Z0-9\.\-_]+$~', $k)) {
-                        $this->addError("Invalid key '$k' used in Components Object for attribute '$attribute', does not match ^[a-zA-Z0-9\.\-_]+\$.");
-                    }
+            if (! is_array($this->$attribute)) {
+                continue;
+            }
+
+            foreach (array_keys($this->$attribute) as $k) {
+                if (preg_match('~^[a-zA-Z0-9\.\-_]+$~', (string) $k)) {
+                    continue;
                 }
+
+                $this->addError(
+                    sprintf(
+                        'Invalid key \'%s\' used in Components Object for attribute \'%s\', does not match ^[a-zA-Z0-9\.\-_]+$.',
+                        $k,
+                        $attribute,
+                    ),
+                );
             }
         }
     }

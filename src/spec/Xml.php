@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
 
 /**
  * A metadata object that allows for more fine-tuned XML model definitions.
@@ -17,21 +14,19 @@ use cebe\openapi\SpecBaseObject;
  * @property string $name
  * @property string $namespace
  * @property string $prefix
- * @property boolean $attribute
- * @property boolean $wrapped
+ * @property bool $attribute
+ * @property bool $wrapped
  */
-class Xml extends SpecBaseObject
+final class Xml extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
+            'attribute' => Type::BOOLEAN,
             'name' => Type::STRING,
             'namespace' => Type::STRING,
             'prefix' => Type::STRING,
-            'attribute' => Type::BOOLEAN,
             'wrapped' => Type::BOOLEAN,
         ];
     }
@@ -39,7 +34,7 @@ class Xml extends SpecBaseObject
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
     }
 }

@@ -1,23 +1,25 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Contact;
-use cebe\openapi\spec\Info;
-use cebe\openapi\spec\License;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Info::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Contact::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\License::class)]
-class InfoTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Contact;
+use openapiphp\openapi\spec\Info;
+use openapiphp\openapi\spec\License;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Info::class)]
+#[CoversClass(Contact::class)]
+#[CoversClass(License::class)]
+class InfoTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'
 title: Sample Pet Store App
 description: This is a sample server for a pet store.
@@ -32,6 +34,7 @@ license:
 version: 1.0.1
 YAML
             , Info::class);
+        assert($info instanceof Info);
 
         $result = $info->validate();
         $this->assertEquals([], $info->getErrors());
@@ -53,7 +56,6 @@ YAML
 
     public function testReadInvalid(): void
     {
-        /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'
 description: This is a sample server for a pet store.
 termsOfService: http://example.com/terms/
@@ -63,6 +65,7 @@ contact:
   email: support@example.com
 YAML
             , Info::class);
+        assert($info instanceof Info);
 
         $result = $info->validate();
         $this->assertEquals([
@@ -70,12 +73,10 @@ YAML
             'Info is missing required property: version',
         ], $info->getErrors());
         $this->assertFalse($result);
-
     }
 
     public function testReadInvalidContact(): void
     {
-        /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'
 title: test
 version: 1.0
@@ -85,6 +86,7 @@ contact:
   email: support.example.com
 YAML
             , Info::class);
+        assert($info instanceof Info);
 
         $result = $info->validate();
         $this->assertEquals([
@@ -95,12 +97,10 @@ YAML
 
         $this->assertInstanceOf(Contact::class, $info->contact);
         $this->assertNull($info->license);
-
     }
 
     public function testReadInvalidLicense(): void
     {
-        /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'
 title: test
 version: 1.0
@@ -108,6 +108,7 @@ license:
   url: www.apache.org/licenses/LICENSE-2.0.html
 YAML
             , Info::class);
+        assert($info instanceof Info);
 
         $result = $info->validate();
         $this->assertEquals([
@@ -118,6 +119,5 @@ YAML
 
         $this->assertInstanceOf(License::class, $info->license);
         $this->assertNull($info->contact);
-
     }
 }

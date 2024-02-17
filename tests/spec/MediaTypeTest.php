@@ -1,24 +1,33 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\MediaType;
-use cebe\openapi\spec\Example;
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\Reference;
+namespace OpenApiTest\spec;
+
+use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Encoding;
+use openapiphp\openapi\spec\Example;
+use openapiphp\openapi\spec\Header;
+use openapiphp\openapi\spec\MediaType;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Schema;
+use openapiphp\openapi\spec\Type;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use stdClass;
 use Symfony\Component\Yaml\Yaml;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\MediaType::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Example::class)]
-class MediaTypeTest extends \PHPUnit\Framework\TestCase
+use function assert;
+
+#[CoversClass(MediaType::class)]
+#[CoversClass(Example::class)]
+class MediaTypeTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $mediaType MediaType */
         $mediaType = Reader::readFromYaml(<<<'YAML'
 schema:
   $ref: "#/components/schemas/Pet"
@@ -43,6 +52,7 @@ examples:
     $ref: "#/components/examples/frog-example"
 YAML
             , MediaType::class);
+        assert($mediaType instanceof MediaType);
 
         $result = $mediaType->validate();
         $this->assertEquals([], $mediaType->getErrors());
@@ -50,11 +60,7 @@ YAML
 
         $this->assertInstanceOf(Reference::class, $mediaType->schema);
 
-        if (method_exists($this, 'assertIsArray')) {
-            $this->assertIsArray($mediaType->examples);
-        } else {
-            $this->assertInternalType('array', $mediaType->examples);
-        }
+        $this->assertIsArray($mediaType->examples);
 
         $this->assertCount(3, $mediaType->examples);
         $this->assertArrayHasKey('cat', $mediaType->examples);
@@ -73,27 +79,26 @@ YAML
             'breed' => 'Persian',
         ];
         $this->assertEquals($expectedCat, $mediaType->examples['cat']->value);
-
     }
 
     public function testCreateionFromObjects(): void
     {
         $mediaType = new MediaType([
-            'schema' => new \cebe\openapi\spec\Schema([
-                'type' => \cebe\openapi\spec\Type::OBJECT,
+            'schema' => new Schema([
+                'type' => Type::OBJECT,
                 'properties' => [
-                    'id' => new \cebe\openapi\spec\Schema(['type' => 'string', 'format' => 'uuid']),
-                    'profileImage' => new \cebe\openapi\spec\Schema(['type' => 'string', 'format' => 'binary']),
+                    'id' => new Schema(['type' => 'string', 'format' => 'uuid']),
+                    'profileImage' => new Schema(['type' => 'string', 'format' => 'binary']),
                 ],
             ]),
             'encoding' => [
                 'id' => [],
-                'profileImage' => new \cebe\openapi\spec\Encoding([
+                'profileImage' => new Encoding([
                     'contentType' => 'image/png, image/jpeg',
                     'headers' => [
-                        'X-Rate-Limit-Limit' => new \cebe\openapi\spec\Header([
+                        'X-Rate-Limit-Limit' => new Header([
                             'description' => 'The number of allowed requests in the current period',
-                            'schema' => new \cebe\openapi\spec\Schema(['type' => 'integer']),
+                            'schema' => new Schema(['type' => 'integer']),
                         ]),
                     ],
                 ]),
@@ -103,10 +108,11 @@ YAML
         // default value should be extracted
         $this->assertEquals('text/plain', $mediaType->encoding['id']->contentType);
         // object should be passed.
-        $this->assertInstanceOf(\cebe\openapi\spec\Encoding::class, $mediaType->encoding['profileImage']);
+        $this->assertInstanceOf(Encoding::class, $mediaType->encoding['profileImage']);
     }
 
-    public static function badEncodingProvider()
+    /** @return iterable<array<string, mixed>|string> */
+    public static function badEncodingProvider(): iterable
     {
         yield [['encoding' => ['id' => 'foo']], 'Encoding MUST be either array or Encoding object, "string" given'];
         yield [['encoding' => ['id' => 42]], 'Encoding MUST be either array or Encoding object, "integer" given'];
@@ -115,10 +121,11 @@ YAML
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('badEncodingProvider')]
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
+    /** @param array<string, mixed> $config */
+    #[DataProvider('badEncodingProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit(array $config, string $expectedException): void
     {
-        $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
+        $this->expectException(TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);
 
         new MediaType($config);
@@ -126,7 +133,7 @@ YAML
 
     public function testUnresolvedReferencesInEncoding(): void
     {
-        $yaml = Yaml::parse(
+        $yaml    = Yaml::parse(
             <<<'YAML'
 openapi: "3.0.0"
 info:
@@ -166,10 +173,10 @@ components:
       properties:
         name:
           type: string
-YAML
+YAML,
         );
         $openapi = new OpenApi($yaml);
-        $result = $openapi->validate();
+        $result  = $openapi->validate();
 
         $this->assertEquals([], $openapi->getErrors());
         $this->assertTrue($result);

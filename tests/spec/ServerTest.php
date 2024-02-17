@@ -1,22 +1,24 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Server;
-use cebe\openapi\spec\ServerVariable;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Server::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\ServerVariable::class)]
-class ServerTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Server;
+use openapiphp\openapi\spec\ServerVariable;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Server::class)]
+#[CoversClass(ServerVariable::class)]
+class ServerTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $server Server */
-        $server = Reader::readFromJson(<<<JSON
+        $server = Reader::readFromJson(<<<'JSON'
 {
   "url": "https://{username}.gigantic-server.com:{port}/{basePath}",
   "description": "The production API server",
@@ -39,6 +41,7 @@ class ServerTest extends \PHPUnit\Framework\TestCase
 }
 JSON
             , Server::class);
+        assert($server instanceof Server);
 
         $result = $server->validate();
         $this->assertEquals([], $server->getErrors());
@@ -51,21 +54,19 @@ JSON
         $this->assertEquals('this value is assigned by the service provider, in this example `gigantic-server.com`', $server->variables['username']->description);
         $this->assertEquals('8443', $server->variables['port']->default);
 
-        /** @var $server Server */
-        $server = Reader::readFromJson(<<<JSON
+        $server = Reader::readFromJson(<<<'JSON'
 {
   "description": "The production API server"
 }
 JSON
             , Server::class);
+        assert($server instanceof Server);
 
         $result = $server->validate();
         $this->assertEquals(['Server is missing required property: url'], $server->getErrors());
         $this->assertFalse($result);
 
-
-        /** @var $server Server */
-        $server = Reader::readFromJson(<<<JSON
+        $server = Reader::readFromJson(<<<'JSON'
 {
   "url": "https://{username}.gigantic-server.com:{port}/{basePath}",
   "description": "The production API server",
@@ -77,10 +78,10 @@ JSON
 }
 JSON
             , Server::class);
+        assert($server instanceof Server);
 
         $result = $server->validate();
         $this->assertEquals(['ServerVariable is missing required property: default'], $server->getErrors());
         $this->assertFalse($result);
     }
-
 }

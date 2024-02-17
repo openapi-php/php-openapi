@@ -1,22 +1,28 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\MediaType;
-use cebe\openapi\spec\Response;
-use cebe\openapi\spec\Responses;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Response::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Responses::class)]
-class ResponseTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\MediaType;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Response;
+use openapiphp\openapi\spec\Responses;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use stdClass;
+
+use function assert;
+
+#[CoversClass(Response::class)]
+#[CoversClass(Responses::class)]
+class ResponseTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $response Response */
         $response = Reader::readFromJson(<<<'JSON'
 {
   "description": "A complex object array response",
@@ -33,16 +39,16 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 }
 JSON
             , Response::class);
+        assert($response instanceof Response);
 
         $result = $response->validate();
         $this->assertEquals([], $response->getErrors());
         $this->assertTrue($result);
 
         $this->assertEquals('A complex object array response', $response->description);
-        $this->assertArrayHasKey("application/json", $response->content);
-        $this->assertInstanceOf(MediaType::class, $response->content["application/json"]);
+        $this->assertArrayHasKey('application/json', $response->content);
+        $this->assertInstanceOf(MediaType::class, $response->content['application/json']);
 
-        /** @var $response Response */
         $response = Reader::readFromJson(<<<'JSON'
 {
   "content": {
@@ -58,17 +64,15 @@ JSON
 }
 JSON
             , Response::class);
+        assert($response instanceof Response);
 
         $result = $response->validate();
-        $this->assertEquals([
-            'Response is missing required property: description',
-        ], $response->getErrors());
+        $this->assertEquals(['Response is missing required property: description'], $response->getErrors());
         $this->assertFalse($result);
     }
 
     public function testResponses(): void
     {
-        /** @var $responses Responses */
         $responses = Reader::readFromYaml(<<<'YAML'
 '200':
   description: a pet to be returned
@@ -84,33 +88,27 @@ default:
         $ref: '#/components/schemas/ErrorModel'
 YAML
             , Responses::class);
+        assert($responses instanceof Responses);
 
         $result = $responses->validate();
         $this->assertEquals([], $responses->getErrors());
         $this->assertTrue($result);
 
-        $this->assertTrue($responses->hasResponse(200));
-        $this->assertFalse($responses->hasResponse(201));
         $this->assertTrue($responses->hasResponse('200'));
         $this->assertFalse($responses->hasResponse('201'));
         $this->assertTrue($responses->hasResponse('default'));
-        $this->assertTrue(isset($responses[200]));
-        $this->assertFalse(isset($responses[201]));
         $this->assertTrue(isset($responses['200']));
         $this->assertFalse(isset($responses['201']));
         $this->assertTrue(isset($responses['default']));
 
         $this->assertCount(2, $responses->getResponses());
         $this->assertCount(2, $responses);
-        $this->assertInstanceOf(Response::class, $responses->getResponses()[200]);
         $this->assertInstanceOf(Response::class, $responses->getResponses()['200']);
         $this->assertInstanceOf(Response::class, $responses->getResponses()['default']);
 
-        $this->assertInstanceOf(Response::class, $responses->getResponse(200));
         $this->assertInstanceOf(Response::class, $responses->getResponse('200'));
         $this->assertInstanceOf(Response::class, $responses->getResponse('default'));
         $this->assertNull($responses->getResponse('201'));
-        $this->assertInstanceOf(Response::class, $responses[200]);
         $this->assertInstanceOf(Response::class, $responses['200']);
         $this->assertInstanceOf(Response::class, $responses['default']);
         $this->assertNull($responses['201']);
@@ -119,16 +117,16 @@ YAML
         $this->assertEquals('a pet to be returned', $responses['200']->description);
 
         $keys = [];
-        foreach($responses as $k => $response) {
+        foreach ($responses as $k => $response) {
             $keys[] = $k;
             $this->assertInstanceOf(Response::class, $response);
         }
+
         $this->assertEquals([200, 'default'], $keys);
     }
 
     public function testResponseCodes(): void
     {
-        /** @var $responses Responses */
         $responses = Reader::readFromYaml(<<<'YAML'
 '200':
   description: valid statuscode
@@ -152,6 +150,7 @@ YAML
   description: valid statuscode
 YAML
             , Responses::class);
+        assert($responses instanceof Responses);
 
         $result = $responses->validate();
         $this->assertEquals([
@@ -163,7 +162,6 @@ YAML
 
         ], $responses->getErrors());
         $this->assertFalse($result);
-
     }
 
     public function testCreateionFromObjects(): void
@@ -173,11 +171,12 @@ YAML
             404 => ['description' => 'The pets list is gone 🙀'],
         ]);
 
-        $this->assertSame('A list of pets.', $responses->getResponse(200)->description);
-        $this->assertSame('The pets list is gone 🙀', $responses->getResponse(404)->description);
+        $this->assertSame('A list of pets.', $responses->getResponse('200')->description);
+        $this->assertSame('The pets list is gone 🙀', $responses->getResponse('404')->description);
     }
 
-    public static function badResponseProvider()
+    /** @return iterable<array<string, mixed>|string> */
+    public static function badResponseProvider(): iterable
     {
         yield [['200' => 'foo'], 'Response MUST be either an array, a Response or a Reference object, "string" given'];
         yield [['200' => 42], 'Response MUST be either an array, a Response or a Reference object, "integer" given'];
@@ -186,10 +185,11 @@ YAML
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('badResponseProvider')]
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
+    /** @param Response[]|Reference[]|array[] $config */
+    #[DataProvider('badResponseProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit(array $config, string $expectedException): void
     {
-        $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
+        $this->expectException(TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);
 
         new Responses($config);

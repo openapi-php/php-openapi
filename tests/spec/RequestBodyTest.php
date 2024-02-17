@@ -1,22 +1,25 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\MediaType;
-use cebe\openapi\spec\RequestBody;
-use cebe\openapi\spec\Encoding;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\RequestBody::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Encoding::class)]
-class RequestBodyTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Encoding;
+use openapiphp\openapi\spec\Header;
+use openapiphp\openapi\spec\MediaType;
+use openapiphp\openapi\spec\RequestBody;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(RequestBody::class)]
+#[CoversClass(Encoding::class)]
+class RequestBodyTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $requestBody RequestBody */
         $requestBody = Reader::readFromJson(<<<'JSON'
 {
   "description": "user to add to the system",
@@ -30,19 +33,19 @@ class RequestBodyTest extends \PHPUnit\Framework\TestCase
 }
 JSON
             , RequestBody::class);
+        assert($requestBody instanceof RequestBody);
 
         $result = $requestBody->validate();
         $this->assertEquals([], $requestBody->getErrors());
         $this->assertTrue($result);
 
         $this->assertEquals('user to add to the system', $requestBody->description);
-        $this->assertArrayHasKey("application/json", $requestBody->content);
-        $this->assertInstanceOf(MediaType::class, $requestBody->content["application/json"]);
+        $this->assertArrayHasKey('application/json', $requestBody->content);
+        $this->assertInstanceOf(MediaType::class, $requestBody->content['application/json']);
 
         // required Defaults to false.
         $this->assertFalse($requestBody->required);
 
-        /** @var $response RequestBody */
         $requestBody = Reader::readFromJson(<<<'JSON'
 {
   "description": "user to add to the system"
@@ -51,15 +54,12 @@ JSON
             , RequestBody::class);
 
         $result = $requestBody->validate();
-        $this->assertEquals([
-            'RequestBody is missing required property: content',
-        ], $requestBody->getErrors());
+        $this->assertEquals(['RequestBody is missing required property: content'], $requestBody->getErrors());
         $this->assertFalse($result);
     }
 
     public function testEncoding(): void
     {
-        /** @var $requestBody RequestBody */
         $requestBody = Reader::readFromYaml(<<<'YAML'
 content:
   multipart/mixed:
@@ -86,33 +86,34 @@ content:
         style: form
 YAML
             , RequestBody::class);
+        assert($requestBody instanceof RequestBody);
 
         $result = $requestBody->validate();
         $this->assertEquals([], $requestBody->getErrors());
         $this->assertTrue($result);
 
-        $this->assertArrayHasKey("multipart/mixed", $requestBody->content);
-        $this->assertInstanceOf(MediaType::class, $mediaType = $requestBody->content["multipart/mixed"]);
+        $this->assertArrayHasKey('multipart/mixed', $requestBody->content);
+        $this->assertInstanceOf(MediaType::class, $mediaType = $requestBody->content['multipart/mixed']);
 
         $this->assertCount(3, $mediaType->encoding);
-        $this->assertArrayHasKey("historyMetadata", $mediaType->encoding);
-        $this->assertArrayHasKey("profileImage", $mediaType->encoding);
-        $this->assertArrayHasKey("other", $mediaType->encoding);
-        $this->assertInstanceOf(Encoding::class, $mediaType->encoding["profileImage"]);
-        $this->assertInstanceOf(Encoding::class, $mediaType->encoding["historyMetadata"]);
-        $this->assertInstanceOf(Encoding::class, $mediaType->encoding["other"]);
+        $this->assertArrayHasKey('historyMetadata', $mediaType->encoding);
+        $this->assertArrayHasKey('profileImage', $mediaType->encoding);
+        $this->assertArrayHasKey('other', $mediaType->encoding);
+        $this->assertInstanceOf(Encoding::class, $mediaType->encoding['profileImage']);
+        $this->assertInstanceOf(Encoding::class, $mediaType->encoding['historyMetadata']);
+        $this->assertInstanceOf(Encoding::class, $mediaType->encoding['other']);
 
-        $profileImage = $mediaType->encoding["profileImage"];
+        $profileImage = $mediaType->encoding['profileImage'];
         $this->assertEquals('image/png, image/jpeg', $profileImage->contentType);
-        $this->assertInstanceOf(\cebe\openapi\spec\Header::class, $profileImage->headers['X-Rate-Limit-Limit']);
+        $this->assertInstanceOf(Header::class, $profileImage->headers['X-Rate-Limit-Limit']);
         $this->assertEquals('The number of allowed requests in the current period', $profileImage->headers['X-Rate-Limit-Limit']->description);
 
         // When style is form, the default value is true. For all other styles, the default value is false.
         $this->assertFalse($profileImage->explode);
-        $this->assertTrue($mediaType->encoding["other"]->explode);
+        $this->assertTrue($mediaType->encoding['other']->explode);
 
         // allowReserved default value is false
         $this->assertFalse($profileImage->allowReserved);
-        $this->assertFalse($mediaType->encoding["other"]->allowReserved);
+        $this->assertFalse($mediaType->encoding['other']->allowReserved);
     }
 }

@@ -1,19 +1,31 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Components;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Components::class)]
-class ComponentsTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Callback;
+use openapiphp\openapi\spec\Components;
+use openapiphp\openapi\spec\Example;
+use openapiphp\openapi\spec\Header;
+use openapiphp\openapi\spec\Link;
+use openapiphp\openapi\spec\Parameter;
+use openapiphp\openapi\spec\RequestBody;
+use openapiphp\openapi\spec\Response;
+use openapiphp\openapi\spec\Schema;
+use openapiphp\openapi\spec\SecurityScheme;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+use function sprintf;
+
+#[CoversClass(Components::class)]
+class ComponentsTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $components Components */
         $components = Reader::readFromYaml(<<<'YAML'
 schemas:
   GeneralError:
@@ -83,46 +95,50 @@ securitySchemes:
           read:pets: read your pets
 YAML
             , Components::class);
+        assert($components instanceof Components);
 
         $result = $components->validate();
         $this->assertEquals([], $components->getErrors());
         $this->assertTrue($result);
 
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Schema::class, $components->schemas);
+        $this->assertAllInstanceOf(Schema::class, $components->schemas);
         $this->assertCount(3, $components->schemas);
         $this->assertArrayHasKey('GeneralError', $components->schemas);
         $this->assertArrayHasKey('Category', $components->schemas);
         $this->assertArrayHasKey('Tag', $components->schemas);
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Response::class, $components->responses);
+        $this->assertAllInstanceOf(Response::class, $components->responses);
         $this->assertCount(3, $components->responses);
         $this->assertArrayHasKey('NotFound', $components->responses);
         $this->assertArrayHasKey('IllegalInput', $components->responses);
         $this->assertArrayHasKey('GeneralError', $components->responses);
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Parameter::class, $components->parameters);
+        $this->assertAllInstanceOf(Parameter::class, $components->parameters);
         $this->assertCount(2, $components->parameters);
         $this->assertArrayHasKey('skipParam', $components->parameters);
         $this->assertArrayHasKey('limitParam', $components->parameters);
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Example::class, $components->examples);
+        $this->assertAllInstanceOf(Example::class, $components->examples);
         $this->assertCount(0, $components->examples); // TODO
-        $this->assertAllInstanceOf(\cebe\openapi\spec\RequestBody::class, $components->requestBodies);
+        $this->assertAllInstanceOf(RequestBody::class, $components->requestBodies);
         $this->assertCount(0, $components->requestBodies); // TODO
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Header::class, $components->headers);
+        $this->assertAllInstanceOf(Header::class, $components->headers);
         $this->assertCount(0, $components->headers); // TODO
-        $this->assertAllInstanceOf(\cebe\openapi\spec\SecurityScheme::class, $components->securitySchemes);
+        $this->assertAllInstanceOf(SecurityScheme::class, $components->securitySchemes);
         $this->assertCount(2, $components->securitySchemes);
         $this->assertArrayHasKey('api_key', $components->securitySchemes);
         $this->assertArrayHasKey('petstore_auth', $components->securitySchemes);
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Link::class, $components->links);
+        $this->assertAllInstanceOf(Link::class, $components->links);
         $this->assertCount(0, $components->links); // TODO
-        $this->assertAllInstanceOf(\cebe\openapi\spec\Callback::class, $components->callbacks);
+        $this->assertAllInstanceOf(Callback::class, $components->callbacks);
         $this->assertCount(0, $components->callbacks); // TODO
     }
 
-    public function assertAllInstanceOf($className, $array): void
+    /**
+     * @param class-string          $className
+     * @param array<string, string> $array
+     */
+    public function assertAllInstanceOf(string $className, array $array): void
     {
-        foreach($array as $k => $v) {
-            $this->assertInstanceOf($className, $v, "Asserting that item with key '$k' is instance of $className");
+        foreach ($array as $k => $v) {
+            $this->assertInstanceOf($className, $v, sprintf('Asserting that item with key \'%s\' is instance of %s', $k, $className));
         }
     }
-
 }

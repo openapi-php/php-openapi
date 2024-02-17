@@ -1,14 +1,13 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\exceptions\TypeErrorException;
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
+
+use function count;
+use function in_array;
 
 /**
  * Describes a single operation parameter.
@@ -23,8 +22,8 @@ use cebe\openapi\SpecBaseObject;
  * @property bool $allowEmptyValue
  *
  * @property string $style
- * @property boolean $explode
- * @property boolean $allowReserved
+ * @property bool $explode
+ * @property bool $allowReserved
  * @property Schema|Reference|null $schema
  * @property mixed $example
  * @property Example[] $examples
@@ -33,9 +32,7 @@ use cebe\openapi\SpecBaseObject;
  */
 class Parameter extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
@@ -57,21 +54,16 @@ class Parameter extends SpecBaseObject
         ];
     }
 
-    private $_attributeDefaults = [];
+    /** @var array<string, string|bool>  */
+    private array $_attributeDefaults = [];
 
-    /**
-     * @return array array of attributes default values.
-     */
+    /** @inheritDoc */
     protected function attributeDefaults(): array
     {
         return $this->_attributeDefaults;
     }
 
-    /**
-     * Create an object from spec data.
-     * @param array $data spec data read from YAML or JSON
-     * @throws TypeErrorException in case invalid data is supplied.
-     */
+    /** @inheritDoc */
     public function __construct(array $data)
     {
         if (isset($data['in'])) {
@@ -83,20 +75,22 @@ class Parameter extends SpecBaseObject
             switch ($data['in']) {
                 case 'query':
                 case 'cookie':
-                    $this->_attributeDefaults['style'] = 'form';
+                    $this->_attributeDefaults['style']   = 'form';
                     $this->_attributeDefaults['explode'] = true;
                     break;
                 case 'path':
                 case 'header':
-                    $this->_attributeDefaults['style'] = 'simple';
+                    $this->_attributeDefaults['style']   = 'simple';
                     $this->_attributeDefaults['explode'] = false;
                     break;
             }
         }
+
         if (isset($data['style'])) {
             // Spec: When style is form, the default value is true. For all other styles, the default value is false.
             $this->_attributeDefaults['explode'] = ($data['style'] === 'form');
         }
+
         parent::__construct($data);
     }
 
@@ -105,19 +99,21 @@ class Parameter extends SpecBaseObject
      *
      * Call `addError()` in case of validation errors.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
         $this->requireProperties(['name', 'in']);
         if ($this->in === 'path') {
             $this->requireProperties(['required']);
-            if (!$this->required) {
+            if (! $this->required) {
                 $this->addError("Parameter 'required' must be true for 'in': 'path'.");
             }
         }
-        if (!empty($this->content) && !empty($this->schema)) {
+
+        if (! empty($this->content) && ! empty($this->schema)) {
             $this->addError('A Parameter Object MUST contain either a schema property, or a content property, but not both.');
         }
-        if (!empty($this->content) && count($this->content) !== 1) {
+
+        if (! empty($this->content) && count($this->content) !== 1) {
             $this->addError('A Parameter Object with Content property MUST have A SINGLE content type.');
         }
 
@@ -127,8 +123,10 @@ class Parameter extends SpecBaseObject
             'header' => ['simple'],
             'cookie' => ['form'],
         ];
-        if (isset($supportedSerializationStyles[$this->in]) && !in_array($this->style, $supportedSerializationStyles[$this->in])) {
-            $this->addError('A Parameter Object DOES NOT support this serialization style.');
+        if (! isset($supportedSerializationStyles[$this->in]) || in_array($this->style, $supportedSerializationStyles[$this->in])) {
+            return;
         }
+
+        $this->addError('A Parameter Object DOES NOT support this serialization style.');
     }
 }

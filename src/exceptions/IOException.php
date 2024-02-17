@@ -1,20 +1,16 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\exceptions;
+namespace openapiphp\openapi\exceptions;
+
+use Exception;
 
 /**
  * This exception is thrown when reading or writing of a file fails.
- * @since 1.2.1
  */
-class IOException extends \Exception
+class IOException extends Exception
 {
-    /**
-     * @var string|null if available, the name of the affected file.
-     */
-    public $fileName;
+    /** @var string|null if available, the name of the affected file. */
+    public string|null $fileName = null;
 }

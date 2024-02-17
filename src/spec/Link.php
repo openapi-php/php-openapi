@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
 
 /**
  * The Link object represents a possible design-time link for a response.
@@ -20,13 +17,10 @@ use cebe\openapi\SpecBaseObject;
  * @property mixed $requestBody
  * @property string $description
  * @property Server|null $server
- *
  */
 class Link extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
@@ -42,10 +36,12 @@ class Link extends SpecBaseObject
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
-        if (!empty($this->operationId) && !empty($this->operationRef)) {
-            $this->addError('Link: operationId and operationRef are mutually exclusive.');
+        if (empty($this->operationId) || empty($this->operationRef)) {
+            return;
         }
+
+        $this->addError('Link: operationId and operationRef are mutually exclusive.');
     }
 }
