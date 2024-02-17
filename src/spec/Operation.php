@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
 
 /**
  * Describes a single API operation on a path.
@@ -29,10 +26,7 @@ use cebe\openapi\SpecBaseObject;
  */
 class Operation extends SpecBaseObject
 {
-
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
@@ -51,11 +45,10 @@ class Operation extends SpecBaseObject
         ];
     }
 
+    /** @inheritDoc */
     protected function attributeDefaults(): array
     {
-        return [
-            'security' => null,
-        ];
+        return ['security' => null];
     }
 
     /**
@@ -63,7 +56,7 @@ class Operation extends SpecBaseObject
      *
      * Call `addError()` in case of validation errors.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
         $this->requireProperties(['responses']);
     }

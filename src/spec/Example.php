@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
 
 /**
  * Example Object
@@ -19,25 +16,23 @@ use cebe\openapi\SpecBaseObject;
  * @property mixed $value
  * @property string $externalValue
  */
-class Example extends SpecBaseObject
+final class Example extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
-            'summary' => Type::STRING,
             'description' => Type::STRING,
-            'value' => Type::ANY,
             'externalValue' => Type::STRING,
+            'summary' => Type::STRING,
+            'value' => Type::ANY,
         ];
     }
 
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
     }
 }

@@ -1,16 +1,18 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\ReferenceContext;
-use cebe\openapi\SpecBaseObject;
-use cebe\openapi\SpecObjectInterface;
-use cebe\openapi\json\JsonPointer;
+use openapiphp\openapi\exceptions\UnresolvableReferenceException;
+use openapiphp\openapi\json\JsonPointer;
+use openapiphp\openapi\ReferenceContext;
+use openapiphp\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecObjectInterface;
+
+use function array_keys;
+use function is_array;
+use function sprintf;
 
 /**
  * Describes the operations available on a single path.
@@ -30,51 +32,21 @@ use cebe\openapi\json\JsonPointer;
  * @property Operation|null $head
  * @property Operation|null $patch
  * @property Operation|null $trace
- * @property Server[] $servers
- * @property Parameter[]|Reference[] $parameters
- *
+ * @property array<Server> $servers
+ * @property array<Parameter>|array<Reference> $parameters
  */
-class PathItem extends SpecBaseObject
+final class PathItem extends SpecBaseObject
 {
-    /**
-     * @var Reference|null
-     */
-    private $_ref;
+    private Reference|null $_ref = null;
 
-
-    /**
-     * @return array array of attributes available in this object.
-     */
-    protected function attributes(): array
-    {
-        return [
-            'summary' => Type::STRING,
-            'description' => Type::STRING,
-            'get' => Operation::class,
-            'put' => Operation::class,
-            'post' => Operation::class,
-            'delete' => Operation::class,
-            'options' => Operation::class,
-            'head' => Operation::class,
-            'patch' => Operation::class,
-            'trace' => Operation::class,
-            'servers' => [Server::class],
-            'parameters' => [Parameter::class],
-        ];
-    }
-
-    /**
-     * Create an object from spec data.
-     * @param array $data spec data read from YAML or JSON
-     * @throws \cebe\openapi\exceptions\TypeErrorException in case invalid data is supplied.
-     */
+    /** @inheritDoc */
     public function __construct(array $data)
     {
         if (isset($data['$ref'])) {
             // Allows for an external definition of this path item.
             // $ref in a Path Item Object is not a Reference.
             // https://github.com/OAI/OpenAPI-Specification/issues/1038
-            $this->_ref = new Reference(['$ref' => $data['$ref']], PathItem::class);
+            $this->_ref = new Reference(['$ref' => $data['$ref']], self::class);
             unset($data['$ref']);
         }
 
@@ -82,44 +54,43 @@ class PathItem extends SpecBaseObject
     }
 
     /**
-     * @return mixed returns the serializable data of this object for converting it
+     * @return object returns the serializable data of this object for converting it
      * to JSON or YAML.
      */
-    public function getSerializableData()
+    public function getSerializableData(): object
     {
         $data = parent::getSerializableData();
         if ($this->_ref instanceof Reference) {
             $data->{'$ref'} = $this->_ref->getReference();
         }
+
         if (isset($data->servers) && empty($data->servers)) {
             unset($data->servers);
         }
+
         if (isset($data->parameters) && empty($data->parameters)) {
             unset($data->parameters);
         }
+
         return $data;
     }
 
     /**
-     * Perform validation on this object, check data against OpenAPI Specification rules.
-     */
-    protected function performValidation()
-    {
-        // no required arguments
-    }
-
-    /**
      * Return all operations of this Path.
-     * @return Operation[]
+     *
+     * @return array<Operation>
      */
-    public function getOperations()
+    public function getOperations(): array
     {
         $operations = [];
         foreach ($this->attributes() as $attribute => $type) {
-            if ($type === Operation::class && isset($this->$attribute)) {
-                $operations[$attribute] = $this->$attribute;
+            if ($type !== Operation::class || ! isset($this->$attribute)) {
+                continue;
             }
+
+            $operations[$attribute] = $this->$attribute;
         }
+
         return $operations;
     }
 
@@ -128,9 +99,8 @@ class PathItem extends SpecBaseObject
      * PathItem Object. The properties of the referenced structure are merged with the local Path Item Object.
      * If the same property exists in both, the referenced structure and the local one, this is a conflict.
      * In this case the behavior is *undefined*.
-     * @return Reference|null
      */
-    public function getReference(): ?Reference
+    public function getReference(): Reference|null
     {
         return $this->_ref;
     }
@@ -143,27 +113,31 @@ class PathItem extends SpecBaseObject
         if ($this->_ref instanceof Reference) {
             $this->_ref->setContext($context);
         }
+
         parent::setReferenceContext($context);
     }
 
     /**
      * Resolves all Reference Objects in this object and replaces them with their resolution.
-     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException in case resolving a reference fails.
+     *
+     * @throws UnresolvableReferenceException in case resolving a reference fails.
      */
-    public function resolveReferences(ReferenceContext $context = null): void
+    public function resolveReferences(ReferenceContext|null $context = null): void
     {
         if ($this->_ref instanceof Reference) {
-            $pathItem = $this->_ref->resolve($context);
+            $pathItem   = $this->_ref->resolve($context);
             $this->_ref = null;
             // The properties of the referenced structure are merged with the local Path Item Object.
-            foreach (self::attributes() as $attribute => $type) {
-                if (!isset($pathItem->$attribute)) {
+            foreach (array_keys(self::attributes()) as $attribute) {
+                if (! isset($pathItem->$attribute)) {
                     continue;
                 }
+
                 // If the same property exists in both, the referenced structure and the local one, this is a conflict.
-                if (isset($this->$attribute) && !empty($this->$attribute)) {
-                    $this->addError("Conflicting properties, property '$attribute' exists in local PathItem and also in the referenced one.");
+                if (isset($this->$attribute) && ! empty($this->$attribute)) {
+                    $this->addError(sprintf('Conflicting properties, property \'%s\' exists in local PathItem and also in the referenced one.', $attribute));
                 }
+
                 $this->$attribute = $pathItem->$attribute;
 
                 // resolve references in all properties assinged from the reference
@@ -171,7 +145,7 @@ class PathItem extends SpecBaseObject
                 if ($this->$attribute instanceof Reference) {
                     $referencedObject = $this->$attribute->resolve();
                     $this->$attribute = $referencedObject;
-                    if (!$referencedObject instanceof Reference && $referencedObject !== null) {
+                    if (! $referencedObject instanceof Reference && $referencedObject !== null) {
                         $referencedObject->resolveReferences();
                     }
                 } elseif ($this->$attribute instanceof SpecObjectInterface) {
@@ -181,7 +155,7 @@ class PathItem extends SpecBaseObject
                         if ($item instanceof Reference) {
                             $referencedObject = $item->resolve();
                             $this->$attribute = [$k => $referencedObject] + $this->$attribute;
-                            if (!$referencedObject instanceof Reference && $referencedObject !== null) {
+                            if (! $referencedObject instanceof Reference && $referencedObject !== null) {
                                 $referencedObject->resolveReferences();
                             }
                         } elseif ($item instanceof SpecObjectInterface) {
@@ -197,6 +171,7 @@ class PathItem extends SpecBaseObject
                 }
             }
         }
+
         parent::resolveReferences($context);
     }
 
@@ -205,14 +180,42 @@ class PathItem extends SpecBaseObject
      *
      * Context information contains a reference to the base object where it is contained in
      * as well as a JSON pointer to its position.
-     * @param SpecObjectInterface $baseDocument
-     * @param JsonPointer $jsonPointer
      */
     public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer): void
     {
         parent::setDocumentContext($baseDocument, $jsonPointer);
-        if ($this->_ref instanceof Reference) {
-            $this->_ref->setDocumentContext($baseDocument, $jsonPointer->append('$ref'));
+
+        if (! ($this->_ref instanceof Reference)) {
+            return;
         }
+
+        $this->_ref->setDocumentContext($baseDocument, $jsonPointer->append('$ref'));
+    }
+
+    /** @inheritDoc */
+    protected function attributes(): array
+    {
+        return [
+            'delete' => Operation::class,
+            'description' => Type::STRING,
+            'get' => Operation::class,
+            'head' => Operation::class,
+            'options' => Operation::class,
+            'parameters' => [Parameter::class],
+            'patch' => Operation::class,
+            'post' => Operation::class,
+            'put' => Operation::class,
+            'servers' => [Server::class],
+            'summary' => Type::STRING,
+            'trace' => Operation::class,
+        ];
+    }
+
+    /**
+     * Perform validation on this object, check data against OpenAPI Specification rules.
+     */
+    protected function performValidation(): void
+    {
+        // no required arguments
     }
 }

@@ -1,25 +1,32 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Operation;
-use cebe\openapi\spec\PathItem;
-use cebe\openapi\spec\Paths;
-use cebe\openapi\spec\Reference;
-use cebe\openapi\spec\Response;
-use cebe\openapi\spec\Responses;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Paths::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\PathItem::class)]
-class PathTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Operation;
+use openapiphp\openapi\spec\PathItem;
+use openapiphp\openapi\spec\Paths;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Response;
+use openapiphp\openapi\spec\Responses;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use stdClass;
+
+use function assert;
+use function print_r;
+
+#[CoversClass(Paths::class)]
+#[CoversClass(PathItem::class)]
+class PathTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $paths Paths */
         $paths = Reader::readFromJson(<<<'JSON'
 {
   "/pets": {
@@ -45,6 +52,7 @@ class PathTest extends \PHPUnit\Framework\TestCase
 }
 JSON
             , Paths::class);
+        assert($paths instanceof Paths);
 
         $result = $paths->validate();
         $this->assertEquals([], $paths->getErrors());
@@ -63,7 +71,7 @@ JSON
 
         $this->assertCount(1, $paths->getPaths());
         $this->assertCount(1, $paths);
-        foreach($paths as $path => $pathItem) {
+        foreach ($paths as $path => $pathItem) {
             $this->assertEquals('/pets', $path);
             $this->assertInstanceOf(PathItem::class, $pathItem);
         }
@@ -77,9 +85,9 @@ JSON
                     'responses' => new Responses([
                         200 => new Response(['description' => 'A list of pets.']),
                         404 => ['description' => 'The pets list is gone 🙀'],
-                    ])
-                ])
-            ])
+                    ]),
+                ]),
+            ]),
         ]);
 
         $this->assertTrue($paths->hasPath('/pets'));
@@ -87,11 +95,12 @@ JSON
         $this->assertInstanceOf(PathItem::class, $paths['/pets']);
         $this->assertInstanceOf(Operation::class, $paths->getPath('/pets')->get);
 
-        $this->assertSame('A list of pets.', $paths->getPath('/pets')->get->responses->getResponse(200)->description);
-        $this->assertSame('The pets list is gone 🙀', $paths->getPath('/pets')->get->responses->getResponse(404)->description);
+        $this->assertSame('A list of pets.', $paths->getPath('/pets')->get->responses->getResponse('200')->description);
+        $this->assertSame('The pets list is gone 🙀', $paths->getPath('/pets')->get->responses->getResponse('404')->description);
     }
 
-    public static function badPathsConfigProvider()
+    /** @return iterable<array<string, negative-int>|string> */
+    public static function badPathsConfigProvider(): iterable
     {
         yield [['/pets' => 'foo'], 'Path MUST be either array or PathItem object, "string" given'];
         yield [['/pets' => 42], 'Path MUST be either array or PathItem object, "integer" given'];
@@ -100,10 +109,11 @@ JSON
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('badPathsConfigProvider')]
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
+    /** @param (PathItem|array|null)[] $config */
+    #[DataProvider('badPathsConfigProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit(array $config, string $expectedException): void
     {
-        $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
+        $this->expectException(TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);
 
         new Paths($config);
@@ -111,7 +121,6 @@ JSON
 
     public function testInvalidPath(): void
     {
-        /** @var $paths Paths */
         $paths = Reader::readFromJson(<<<'JSON'
 {
   "pets": {
@@ -127,19 +136,18 @@ JSON
 }
 JSON
             , Paths::class);
+        assert($paths instanceof Paths);
 
         $result = $paths->validate();
-        $this->assertEquals([
-            'Path must begin with /: pets'
-        ], $paths->getErrors());
+        $this->assertEquals(['Path must begin with /: pets'], $paths->getErrors());
         $this->assertFalse($result);
     }
 
     public function testPathItemReference(): void
     {
-        $file = __DIR__ . '/data/paths/openapi.yaml';
-        /** @var $openapi \cebe\openapi\spec\OpenApi */
-        $openapi = Reader::readFromYamlFile($file, \cebe\openapi\spec\OpenApi::class, false);
+        $file    = __DIR__ . '/data/paths/openapi.yaml';
+        $openapi = Reader::readFromYamlFile($file, OpenApi::class, false);
+        assert($openapi instanceof OpenApi);
 
         $result = $openapi->validate();
         $this->assertEquals([], $openapi->getErrors(), print_r($openapi->getErrors(), true));
@@ -150,32 +158,32 @@ JSON
         $this->assertInstanceOf(PathItem::class, $barPath = $openapi->paths['/bar']);
         $this->assertSame([
             'x-extension-1' => 'Extension1',
-            'x-extension-2' => 'Extension2'
+            'x-extension-2' => 'Extension2',
         ], $openapi->getExtensions());
 
         $this->assertEmpty($fooPath->getOperations());
         $this->assertEmpty($barPath->getOperations());
 
-        $this->assertInstanceOf(\cebe\openapi\spec\Reference::class, $fooPath->getReference());
-        $this->assertInstanceOf(\cebe\openapi\spec\Reference::class, $barPath->getReference());
+        $this->assertInstanceOf(Reference::class, $fooPath->getReference());
+        $this->assertInstanceOf(Reference::class, $barPath->getReference());
 
         $this->assertNull($fooPath->getReference()->resolve());
-        $this->assertInstanceOf(PathItem::class, $ReferencedBarPath = $barPath->getReference()->resolve());
+        $this->assertInstanceOf(PathItem::class, $referencedBarPath = $barPath->getReference()->resolve());
 
-        $this->assertCount(1, $ReferencedBarPath->getOperations());
-        $this->assertInstanceOf(Operation::class, $ReferencedBarPath->get);
-        $this->assertEquals('getBar', $ReferencedBarPath->get->operationId);
+        $this->assertCount(1, $referencedBarPath->getOperations());
+        $this->assertInstanceOf(Operation::class, $referencedBarPath->get);
+        $this->assertEquals('getBar', $referencedBarPath->get->operationId);
 
-        $this->assertInstanceOf(Reference::class, $reference200 = $ReferencedBarPath->get->responses['200']);
-        $this->assertInstanceOf(Response::class, $ReferencedBarPath->get->responses['404']);
-        $this->assertEquals('non-existing resource', $ReferencedBarPath->get->responses['404']->description);
+        $this->assertInstanceOf(Reference::class, $reference200 = $referencedBarPath->get->responses['200']);
+        $this->assertInstanceOf(Response::class, $referencedBarPath->get->responses['404']);
+        $this->assertEquals('non-existing resource', $referencedBarPath->get->responses['404']->description);
 
         $path200 = $reference200->resolve();
         $this->assertInstanceOf(Response::class, $path200);
         $this->assertEquals('A bar', $path200->description);
 
-        /** @var $openapi OpenApi */
-        $openapi = Reader::readFromYamlFile($file, \cebe\openapi\spec\OpenApi::class, true);
+        $openapi = Reader::readFromYamlFile($file, OpenApi::class, true);
+        assert($openapi instanceof OpenApi);
 
         $result = $openapi->validate();
         $this->assertEquals([], $openapi->getErrors(), print_r($openapi->getErrors(), true));

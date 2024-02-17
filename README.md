@@ -1,7 +1,3 @@
-## Atention
-This is a fork of [cebe/php-openapi](https://github.com/cebe/php-openapi). I created it as library because the pull request
-of the openapi3.1 was taking years and a lot of developers want to use it.
-
 # php-openapi
 
 Read and write [OpenAPI](https://www.openapis.org/) 3.x YAML and JSON files and make the content accessible in PHP objects.
@@ -13,25 +9,26 @@ Supported OpenAPI versions:
 - 3.0.x
 - 3.1.x
 
-[![Latest Stable Version](https://poser.pugx.org/devizzent/cebe-php-openapi/v/stable)](https://packagist.org/packages/devizzent/cebe-php-openapi)
-[![Total Downloads](https://poser.pugx.org/devizzent/cebe-php-openapi/downloads)](https://packagist.org/packages/devizzent/cebe-php-openapi)
-[![Build Status](https://github.com/devizzent/cebe-php-openapi/workflows/CI/badge.svg)](https://github.com/devizzent/cebe-php-openapi/actions)
+[![Latest Stable Version](https://poser.pugx.org/openapi-php/php-openapi/v/stable)](https://packagist.org/packages/openapi-php/php-openapi)
+[![Total Downloads](https://poser.pugx.org/openapi-php/php-openapi/downloads)](https://packagist.org/packages/openapi-php/php-openapi)
+[![Build Status](https://github.com/openapi-php/php-openapi/workflows/CI/badge.svg)](https://github.com/openapi-php/php-openapi/actions)
 
 
 ## Install
-
-    composer require devizzent/cebe-php-openapi
-
-## Requirements
-
-- PHP 7.1 or higher (works fine with PHP 8)
+> composer require php-openapi/openapi
 
 ## Used by
 
 This library provides a low level API for reading and writing OpenAPI files. It is used by higher level tools to
 do awesome work:
 
-- ... ([add yours](https://github.com/devizzent/cebe-php-openapi/edit/master/README.md#L24))
+- 
+- Used by the original `cebe/php-openapi`
+  - [cebe/yii2-openapi](https://github.com/cebe/yii2-openapi) Code Generator for REST API from OpenAPI 3 Descriptions, includes fake data generator.
+  - [cebe/yii2-app-api](https://github.com/cebe/yii2-app-api) Yii framework application template for developing API-first applications.
+  - [league/openapi-psr7-validator](https://github.com/thephpleague/openapi-psr7-validator) validates PSR-7 messages (HTTP request/response) against OpenAPI descriptions.
+  - [dsuurlant/response2schema](https://github.com/dsuurlant/response2schema) a quick and easy tool for generating OpenAPI schemas based on example data.
+- ... ([add yours](https://github.com/openapi-php/php-openapi/edit/main/README.md#L24))
 
 ## Usage
 
@@ -95,7 +92,7 @@ do awesome work:
 Read OpenAPI Description from JSON file:
 
 ```php
-use cebe\openapi\Reader;
+use openapiphp\openapi\Reader;
 
 // realpath is needed for resolving references with relative Paths or URLs
 $openapi = Reader::readFromJsonFile(realpath('openapi.json'));
@@ -104,7 +101,7 @@ $openapi = Reader::readFromJsonFile(realpath('openapi.json'));
 Read OpenAPI Description from YAML:
 
 ```php
-use cebe\openapi\Reader;
+use openapiphp\openapi\Reader;
 
 // realpath is needed for resolving references with relative Paths or URLs
 $openapi = Reader::readFromYamlFile(realpath('openapi.yaml'));
@@ -128,8 +125,8 @@ You may also access additional properties added by [specification extensions](ht
 ### Writing API Description Files
 
 ```php
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\PathItem;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\PathItem;
 
 // create base API Description
 $openapi = new OpenApi([
@@ -146,7 +143,7 @@ $openapi->paths['/test'] = new PathItem([
 ]);
 // ...
 
-$json = \cebe\openapi\Writer::writeToJson($openapi);
+$json = \openapiphp\openapi\Writer::writeToJson($openapi);
 ```
 
 results in the following JSON data:
@@ -171,9 +168,9 @@ results in the following JSON data:
 Since version 1.2.0, the above example can also be written like this (passing objects instead of arrays):
 
 ```php
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\PathItem;
-use cebe\openapi\spec\Info;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\PathItem;
+use openapiphp\openapi\spec\Info;
 
 
 // create base API Description
@@ -189,7 +186,7 @@ $openapi = new OpenApi([
         ]),
     ],
 ]);
-$json = \cebe\openapi\Writer::writeToJson($openapi);
+$json = \openapiphp\openapi\Writer::writeToJson($openapi);
 ```
 
 ### Reading API Description Files and Resolving References
@@ -198,9 +195,9 @@ In the above we have passed the raw JSON or YAML data to the Reader. In order to
 references to structures in external files, we must provide the full context.
 
 ```php
-use cebe\openapi\Reader;
-use cebe\openapi\spec\OpenAPI;
-use cebe\openapi\ReferenceContext;
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\OpenAPI;
+use openapiphp\openapi\ReferenceContext;
 
 // there are two different modes for resolving references:
 // ALL: resolve all references, which will result in a large description with a lot of repetition
@@ -219,7 +216,7 @@ If data has been loaded in a different way you can manually resolve references l
 
 ```php
 $openapi->resolveReferences(
-    new \cebe\openapi\ReferenceContext($openapi, 'https://www.example.com/api/openapi.yaml')
+    new \openapiphp\openapi\ReferenceContext($openapi, 'https://www.example.com/api/openapi.yaml')
 );
 ```
 

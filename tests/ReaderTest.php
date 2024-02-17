@@ -1,16 +1,22 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-class ReaderTest extends \PHPUnit\Framework\TestCase
+namespace OpenApiTest;
+
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\OpenApi;
+use PHPUnit\Framework\TestCase;
+
+use function json_decode;
+use function method_exists;
+
+final class ReaderTest extends TestCase
 {
     public function testReadJson(): void
     {
-        $openapi = \cebe\openapi\Reader::readFromJson(
-            <<<JSON
+        $openapi = Reader::readFromJson(
+            <<<'JSON'
 {
   "openapi": "3.0.0",
   "info": {
@@ -21,7 +27,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase
 
   }
 }
-JSON
+JSON,
         );
 
         $this->assertApiContent($openapi);
@@ -29,15 +35,15 @@ JSON
 
     public function testReadYaml(): void
     {
-        $openapi = \cebe\openapi\Reader::readFromYaml(
-            <<<YAML
+        $openapi = Reader::readFromYaml(
+            <<<'YAML'
 openapi: 3.0.0
 info:
   title: "Test API"
   version: "1.0.0"
 paths:
   /somepath:
-YAML
+YAML,
         );
 
         $this->assertApiContent($openapi);
@@ -49,7 +55,7 @@ YAML
     public function testReadYamlWithAnchors(): void
     {
         $openApiFile = __DIR__ . '/spec/data/traits-mixins.yaml';
-        $openapi = \cebe\openapi\Reader::readFromYamlFile($openApiFile);
+        $openapi     = Reader::readFromYamlFile($openApiFile);
 
         $this->assertApiContent($openapi);
 
@@ -84,25 +90,22 @@ YAML
         $this->assertEquals('uuid of the resource', $foo->properties['uuid']->description);
     }
 
-    private function assertApiContent(\cebe\openapi\spec\OpenApi $openapi): void
+    private function assertApiContent(OpenApi $openapi): void
     {
         $result = $openapi->validate();
         $this->assertEquals([], $openapi->getErrors());
         $this->assertTrue($result);
 
-
-        $this->assertEquals("3.0.0", $openapi->openapi);
-        $this->assertEquals("Test API", $openapi->info->title);
-        $this->assertEquals("1.0.0", $openapi->info->version);
+        $this->assertEquals('3.0.0', $openapi->openapi);
+        $this->assertEquals('Test API', $openapi->info->title);
+        $this->assertEquals('1.0.0', $openapi->info->version);
     }
 
-    /**
-     * @see https://github.com/symfony/symfony/issues/34805
-     */
+    /** @see https://github.com/symfony/symfony/issues/34805 */
     public function testSymfonyYamlBugHunt(): void
     {
         $openApiFile = __DIR__ . '/../vendor/oai/openapi-specification-3.0/examples/v3.0/uspto.yaml';
-        $openapi = \cebe\openapi\Reader::readFromYamlFile($openApiFile);
+        $openapi     = Reader::readFromYamlFile($openApiFile);
 
         $inlineYamlExample = $openapi->paths['/']->get->responses['200']->content['application/json']->example;
 
@@ -112,7 +115,7 @@ YAML
             $this->assertInternalType('array', $inlineYamlExample);
         }
 
-        $expectedArray = json_decode(<<<JSON
+        $expectedArray = json_decode(<<<'JSON'
 {
   "total": 2,
   "apis": [
@@ -134,7 +137,6 @@ JSON
             , true);
         $this->assertEquals($expectedArray, $inlineYamlExample);
     }
-
 
     // TODO test invalid JSON
     // TODO test invalid YAML

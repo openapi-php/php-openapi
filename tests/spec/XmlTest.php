@@ -1,20 +1,22 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Xml;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Xml::class)]
-class XmlTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Xml;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Xml::class)]
+class XmlTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $xml Xml */
-        $xml = Reader::readFromYaml(<<<YAML
+        $xml = Reader::readFromYaml(<<<'YAML'
 name: animal
 attribute: true
 namespace: http://example.com/schema/sample
@@ -22,6 +24,7 @@ prefix: sample
 wrapped: false
 YAML
             , Xml::class);
+        assert($xml instanceof Xml);
 
         $result = $xml->validate();
         $this->assertEquals([], $xml->getErrors());
@@ -33,11 +36,11 @@ YAML
         $this->assertEquals('sample', $xml->prefix);
         $this->assertFalse($xml->wrapped);
 
-        /** @var $xml Xml */
-        $xml = Reader::readFromYaml(<<<YAML
+        $xml = Reader::readFromYaml(<<<'YAML'
 name: animal
 YAML
             , Xml::class);
+        assert($xml instanceof Xml);
 
         $result = $xml->validate();
         $this->assertEquals([], $xml->getErrors());

@@ -1,13 +1,8 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
-
-use cebe\openapi\SpecBaseObject;
+namespace openapiphp\openapi\spec;
 
 /**
  * The Header Object follows the structure of the Parameter Object with the following changes:
@@ -17,20 +12,23 @@ use cebe\openapi\SpecBaseObject;
  * 3. All traits that are affected by the location MUST be applicable to a location of header (for example, style).
  *
  * @link https://github.com/OAI/OpenAPI-Specification/blob/3.0.2/versions/3.0.2.md#headerObject
- *
  */
 class Header extends Parameter
 {
     public function performValidation(): void
     {
-        if (!empty($this->name)) {
+        if (! empty($this->name)) {
             $this->addError("'name' must not be specified in Header Object.");
         }
-        if (!empty($this->in)) {
+
+        if (! empty($this->in)) {
             $this->addError("'in' must not be specified in Header Object.");
         }
-        if (!empty($this->content) && !empty($this->schema)) {
-            $this->addError("A Header Object MUST contain either a schema property, or a content property, but not both. ");
+
+        if (empty($this->content) || empty($this->schema)) {
+            return;
         }
+
+        $this->addError('A Header Object MUST contain either a schema property, or a content property, but not both. ');
     }
 }

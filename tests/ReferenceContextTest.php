@@ -1,16 +1,21 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\ReferenceContext;
-use cebe\openapi\spec\OpenApi;
+namespace OpenApiTest;
 
-class ReferenceContextTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\ReferenceContext;
+use openapiphp\openapi\spec\OpenApi;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+use function array_map;
+use function array_unique;
+
+class ReferenceContextTest extends TestCase
 {
-    public static function resolveUriProvider()
+    /** @return iterable<list<string>> */
+    public static function resolveUriProvider(): iterable
     {
         $data = [
             [
@@ -92,7 +97,7 @@ class ReferenceContextTest extends \PHPUnit\Framework\TestCase
         ];
 
         // absolute URLs should not be changed
-        foreach(array_unique(array_map('current', $data)) as $url) {
+        foreach (array_unique(array_map('current', $data)) as $url) {
             $data[] = [
                 $url,
                 'file:///var/www/definitions.yaml',
@@ -119,16 +124,17 @@ class ReferenceContextTest extends \PHPUnit\Framework\TestCase
         return $data;
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('resolveUriProvider')]
-    public function testResolveUri($baseUri, $referencedUri, $expected): void
+    #[DataProvider('resolveUriProvider')]
+    public function testResolveUri(string $baseUri, string $referencedUri, string $expected): void
     {
         $context = new ReferenceContext(new OpenApi([]), $baseUri);
         $this->assertEquals($expected, $context->resolveRelativeUri($referencedUri));
     }
 
-    public static function normalizeUriProvider()
+    /** @return iterable<list<string>> */
+    public static function normalizeUriProvider(): iterable
     {
-        $data = [
+        return [
             [
                 'https://example.com/openapi.yaml',
                 'https://example.com/openapi.yaml',
@@ -190,15 +196,12 @@ class ReferenceContextTest extends \PHPUnit\Framework\TestCase
                 'file:///var/www/definitions.yaml#/components/Pet',
             ],
         ];
-
-        return $data;
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('normalizeUriProvider')]
-    public function testNormalizeUri($uri, $expected): void
+    #[DataProvider('normalizeUriProvider')]
+    public function testNormalizeUri(string $uri, string $expected): void
     {
         $context = new ReferenceContext(null, $uri);
         $this->assertEquals($expected, $context->getUri());
     }
-
 }

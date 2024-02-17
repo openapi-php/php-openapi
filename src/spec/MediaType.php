@@ -1,14 +1,16 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\exceptions\TypeErrorException;
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\SpecBaseObject;
+
+use function gettype;
+use function is_array;
+use function is_object;
+use function sprintf;
 
 /**
  * Each Media Type Object provides schema and examples for the media type identified by its key.
@@ -22,9 +24,7 @@ use cebe\openapi\SpecBaseObject;
  */
 class MediaType extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
@@ -35,11 +35,7 @@ class MediaType extends SpecBaseObject
         ];
     }
 
-    /**
-     * Create an object from spec data.
-     * @param array $data spec data read from YAML or JSON
-     * @throws TypeErrorException in case invalid data is supplied.
-     */
+    /** @inheritDoc */
     public function __construct(array $data)
     {
         // instantiate Encoding by passing the schema for extracting default values
@@ -48,34 +44,38 @@ class MediaType extends SpecBaseObject
 
         parent::__construct($data);
 
-        if (!empty($encoding)) {
-            foreach ($encoding as $property => $encodingData) {
-                if ($encodingData instanceof Encoding) {
-                    $encoding[$property] = $encodingData;
-                } elseif (is_array($encodingData)) {
-                    $schema = $this->schema->properties[$property] ?? null;
-                    // Don't pass the schema if it's still an unresolved reference.
-                    if ($schema instanceof Reference) {
-                        $encoding[$property] = new Encoding($encodingData);
-                    } else {
-                        $encoding[$property] = new Encoding($encodingData, $schema);
-                    }
-                } else {
-                    $givenType = gettype($encodingData);
-                    if ($givenType === 'object') {
-                        $givenType = $encodingData::class;
-                    }
-                    throw new TypeErrorException(sprintf('Encoding MUST be either array or Encoding object, "%s" given', $givenType));
-                }
-            }
-            $this->encoding = $encoding;
+        if (! is_array($encoding)) {
+            return;
         }
+
+        foreach ($encoding as $property => $encodingData) {
+            if ($encodingData instanceof Encoding) {
+                $encoding[$property] = $encodingData;
+            } elseif (is_array($encodingData)) {
+                $schema = $this->schema->properties[$property] ?? null;
+                // Don't pass the schema if it's still an unresolved reference.
+                if ($schema instanceof Reference) {
+                    $encoding[$property] = new Encoding($encodingData);
+                } else {
+                    $encoding[$property] = new Encoding($encodingData, $schema);
+                }
+            } else {
+                $givenType = gettype($encodingData);
+                if ($givenType === 'object' && is_object($encodingData)) {
+                    $givenType = $encodingData::class;
+                }
+
+                throw new TypeErrorException(sprintf('Encoding MUST be either array or Encoding object, "%s" given', $givenType));
+            }
+        }
+
+        $this->encoding = $encoding;
     }
 
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
     }
 }

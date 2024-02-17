@@ -1,19 +1,24 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Parameter;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Parameter::class)]
-class ParameterTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\MediaType;
+use openapiphp\openapi\spec\Parameter;
+use openapiphp\openapi\spec\Schema;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+use function sprintf;
+
+#[CoversClass(Parameter::class)]
+class ParameterTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 name: token
 in: header
@@ -27,6 +32,7 @@ schema:
 style: simple
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals([], $parameter->getErrors());
@@ -37,12 +43,11 @@ YAML
         $this->assertEquals('token to be passed as a header', $parameter->description);
         $this->assertTrue($parameter->required);
 
-        $this->assertInstanceOf(\cebe\openapi\spec\Schema::class, $parameter->schema);
+        $this->assertInstanceOf(Schema::class, $parameter->schema);
         $this->assertEquals('array', $parameter->schema->type);
 
         $this->assertEquals('simple', $parameter->style);
 
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 in: query
 name: coordinates
@@ -60,6 +65,7 @@ content:
           type: number
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals([], $parameter->getErrors());
@@ -74,18 +80,18 @@ YAML
         // allowEmptyValue default value is false.
         $this->assertFalse($parameter->allowEmptyValue);
 
-        $this->assertInstanceOf(\cebe\openapi\spec\MediaType::class, $parameter->content['application/json']);
-        $this->assertInstanceOf(\cebe\openapi\spec\Schema::class, $parameter->content['application/json']->schema);
+        $this->assertInstanceOf(MediaType::class, $parameter->content['application/json']);
+        $this->assertInstanceOf(Schema::class, $parameter->content['application/json']->schema);
     }
 
     public function testDefaultValuesQuery(): void
     {
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 name: token
 in: query
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals([], $parameter->getErrors());
@@ -99,13 +105,13 @@ YAML
 
     public function testDefaultValuesPath(): void
     {
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 name: token
 in: path
 required: true
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals([], $parameter->getErrors());
@@ -118,12 +124,12 @@ YAML
 
     public function testDefaultValuesHeader(): void
     {
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 name: token
 in: header
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals([], $parameter->getErrors());
@@ -136,12 +142,12 @@ YAML
 
     public function testDefaultValuesCookie(): void
     {
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 name: token
 in: cookie
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals([], $parameter->getErrors());
@@ -154,7 +160,6 @@ YAML
 
     public function testItValidatesSchemaAndContentCombination(): void
     {
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 name: token
 in: cookie
@@ -166,6 +171,7 @@ content:
       type: object
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals(['A Parameter Object MUST contain either a schema property, or a content property, but not both.'], $parameter->getErrors());
@@ -174,7 +180,6 @@ YAML
 
     public function testItValidatesContentCanHaveOnlySingleKey(): void
     {
-        /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
 name: token
 in: cookie
@@ -187,17 +192,17 @@ content:
       type: object
 YAML
             , Parameter::class);
+        assert($parameter instanceof Parameter);
 
         $result = $parameter->validate();
         $this->assertEquals(['A Parameter Object with Content property MUST have A SINGLE content type.'], $parameter->getErrors());
         $this->assertFalse($result);
     }
 
-
     public function testItValidatesSupportedSerializationStyles(): void
     {
         // 1. Prepare test inputs
-        $specTemplate = <<<YAML
+        $specTemplate     = <<<'YAML'
 name: token
 required: true
 in: %s
@@ -209,7 +214,7 @@ YAML;
             'header' => ['simple'],
             'cookie' => ['form'],
         ];
-        $badCombinations = [
+        $badCombinations  = [
             'path' => ['unknown', 'form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
             'query' => ['unknown', 'simple', 'label', 'matrix'],
             'header' => ['unknown', 'form', 'spaceDelimited', 'pipeDelimited', 'deepObject', 'matrix'],
@@ -217,10 +222,10 @@ YAML;
         ];
 
         // 2. Run tests for valid input
-        foreach($goodCombinations as $in=>$styles) {
-            foreach($styles as $style) {
-                /** @var $parameter Parameter */
+        foreach ($goodCombinations as $in => $styles) {
+            foreach ($styles as $style) {
                 $parameter = Reader::readFromYaml(sprintf($specTemplate, $in, $style), Parameter::class);
+                assert($parameter instanceof Parameter);
                 $result = $parameter->validate();
                 $this->assertEquals([], $parameter->getErrors());
                 $this->assertTrue($result);
@@ -228,10 +233,10 @@ YAML;
         }
 
         // 2. Run tests for invalid input
-        foreach($badCombinations as $in=>$styles) {
-            foreach($styles as $style) {
-                /** @var $parameter Parameter */
+        foreach ($badCombinations as $in => $styles) {
+            foreach ($styles as $style) {
                 $parameter = Reader::readFromYaml(sprintf($specTemplate, $in, $style), Parameter::class);
+                assert($parameter instanceof Parameter);
                 $result = $parameter->validate();
                 $this->assertEquals(['A Parameter Object DOES NOT support this serialization style.'], $parameter->getErrors());
                 $this->assertFalse($result);

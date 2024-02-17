@@ -1,25 +1,28 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\ExternalDocumentation;
-use cebe\openapi\spec\Tag;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Tag::class)]
-class TagTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\ExternalDocumentation;
+use openapiphp\openapi\spec\Tag;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Tag::class)]
+class TagTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $tag Tag */
-        $tag = Reader::readFromYaml(<<<YAML
+        $tag = Reader::readFromYaml(<<<'YAML'
 name: pet
 description: Pets operations
 YAML
             , Tag::class);
+        assert($tag instanceof Tag);
 
         $result = $tag->validate();
         $this->assertEquals([], $tag->getErrors());
@@ -29,13 +32,13 @@ YAML
         $this->assertEquals('Pets operations', $tag->description);
         $this->assertNull($tag->externalDocs);
 
-        /** @var $tag Tag */
-        $tag = Reader::readFromYaml(<<<YAML
+        $tag = Reader::readFromYaml(<<<'YAML'
 description: Pets operations
 externalDocs:
   url: https://example.com
 YAML
             , Tag::class);
+        assert($tag instanceof Tag);
 
         $result = $tag->validate();
         $this->assertEquals(['Tag is missing required property: name'], $tag->getErrors());

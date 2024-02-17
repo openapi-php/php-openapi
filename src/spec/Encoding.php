@@ -1,14 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\exceptions\TypeErrorException;
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
 
 /**
  * A single encoding definition applied to a single schema property.
@@ -18,15 +14,12 @@ use cebe\openapi\SpecBaseObject;
  * @property string $contentType
  * @property Header[]|Reference[] $headers
  * @property string $style
- * @property boolean $explode
- * @property boolean $allowReserved
+ * @property bool $explode
+ * @property bool $allowReserved
  */
 class Encoding extends SpecBaseObject
 {
-
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
@@ -40,28 +33,24 @@ class Encoding extends SpecBaseObject
         ];
     }
 
-    private $_attributeDefaults = [];
+    /** @var array<string, string|bool> */
+    private array $_attributeDefaults = [];
 
-    /**
-     * @return array array of attributes default values.
-     */
+    /** @inheritDoc */
     protected function attributeDefaults(): array
     {
         return $this->_attributeDefaults;
     }
 
-    /**
-     * Create an object from spec data.
-     * @param array $data spec data read from YAML or JSON
-     * @throws TypeErrorException in case invalid data is supplied.
-     */
-    public function __construct(array $data, ?Schema $schema = null)
+    /** @inheritDoc */
+    public function __construct(array $data, Schema|null $schema = null)
     {
         if (isset($data['style'])) {
             // Spec: When style is form, the default value is true.
             $this->_attributeDefaults['explode'] = ($data['style'] === 'form');
         }
-        if ($schema !== null) {
+
+        if ($schema instanceof Schema) {
             // Spec: Default value depends on the property type:
             // for string with format being binary – application/octet-stream;
             // for other primitive types – text/plain;
@@ -84,13 +73,14 @@ class Encoding extends SpecBaseObject
                     break;
             }
         }
+
         parent::__construct($data);
     }
 
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
     }
 }

@@ -1,16 +1,20 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\json\JsonPointer;
-use cebe\openapi\json\JsonReference;
+namespace OpenApiTest\json;
 
-class JsonPointerTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\json\JsonPointer;
+use openapiphp\openapi\json\JsonReference;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+use function json_decode;
+
+class JsonPointerTest extends TestCase
 {
-    public static function encodeDecodeData()
+    /** @return iterable<list<string>> */
+    public static function encodeDecodeData(): iterable
     {
         return [
             ['~0', '~'],
@@ -27,24 +31,22 @@ class JsonPointerTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('encodeDecodeData')]
-    public function testEncode($encoded, $decoded): void
+    #[DataProvider('encodeDecodeData')]
+    public function testEncode(string $encoded, string $decoded): void
     {
         $this->assertEquals($encoded, JsonPointer::encode($decoded));
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('encodeDecodeData')]
-    public function testDecode($encoded, $decoded): void
+    #[DataProvider('encodeDecodeData')]
+    public function testDecode(string $encoded, string $decoded): void
     {
         $this->assertEquals($decoded, JsonPointer::decode($encoded));
     }
 
-    /**
-     * @link https://tools.ietf.org/html/rfc6901#section-5
-     */
-    public static function rfcJsonDocument()
+    /** @link https://tools.ietf.org/html/rfc6901#section-5 */
+    public static function rfcJsonDocument(): string
     {
-        return <<<JSON
+        return <<<'JSON'
 {
       "foo": ["bar", "baz"],
       "": 0,
@@ -52,49 +54,52 @@ class JsonPointerTest extends \PHPUnit\Framework\TestCase
       "c%d": 2,
       "e^f": 3,
       "g|h": 4,
-      "i\\\\j": 5,
+      "i\\j": 5,
       "k\"l": 6,
       " ": 7,
       "m~n": 8
 }
 JSON;
-
     }
 
     /**
      * @link https://tools.ietf.org/html/rfc6901#section-5
+     *
+     * @return iterable<list<mixed>>
      */
-    public static function rfcExamples()
+    public static function rfcExamples(): iterable
     {
         $return = [
-            [""      , "#"      , json_decode((string) self::rfcJsonDocument())],
-            ["/foo"  , "#/foo"  , ["bar", "baz"]],
-            ["/foo/0", "#/foo/0", "bar"],
-            ["/"     , "#/"     , 0],
-            ["/a~1b" , "#/a~1b" , 1],
-            ["/c%d"  , "#/c%25d", 2],
-            ["/e^f"  , "#/e%5Ef", 3],
-            ["/g|h"  , "#/g%7Ch", 4],
-            ["/i\\j" , "#/i%5Cj", 5],
-            ["/k\"l" , "#/k%22l", 6],
-            ["/ "    , "#/%20"  , 7],
-            ["/m~0n" , "#/m~0n" , 8],
+            [''      , '#'      , json_decode(self::rfcJsonDocument())],
+            ['/foo'  , '#/foo'  , ['bar', 'baz']],
+            ['/foo/0', '#/foo/0', 'bar'],
+            ['/'     , '#/'     , 0],
+            ['/a~1b' , '#/a~1b' , 1],
+            ['/c%d'  , '#/c%25d', 2],
+            ['/e^f'  , '#/e%5Ef', 3],
+            ['/g|h'  , '#/g%7Ch', 4],
+            ['/i\\j' , '#/i%5Cj', 5],
+            ['/k"l' , '#/k%22l', 6],
+            ['/ '    , '#/%20'  , 7],
+            ['/m~0n' , '#/m~0n' , 8],
         ];
         foreach ($return as $example) {
             $example[3] = self::rfcJsonDocument();
+
             yield $example;
         }
     }
 
-    public static function allExamples()
+    /** @return iterable<list<mixed>> */
+    public static function allExamples(): iterable
     {
         yield from self::rfcExamples();
 
-        yield ["/a#b" , "#/a%23b" , 16, '{"a#b": 16}'];
+        yield ['/a#b', '#/a%23b', 16, '{"a#b": 16}'];
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('allExamples')]
-    public function testUriEncoding($jsonPointer, $uriJsonPointer, $expectedEvaluation): void
+    #[DataProvider('allExamples')]
+    public function testUriEncoding(string $jsonPointer, string $uriJsonPointer, mixed $expectedEvaluation): void
     {
         $pointer = new JsonPointer($jsonPointer);
         $this->assertSame($jsonPointer, $pointer->getPointer());
@@ -105,20 +110,20 @@ JSON;
         $this->assertSame('', $reference->getDocumentUri());
         $this->assertSame($uriJsonPointer, $reference->getReference());
 
-        $reference = JsonReference::createFromReference("somefile.json$uriJsonPointer");
+        $reference = JsonReference::createFromReference('somefile.json' . $uriJsonPointer);
         $this->assertSame($jsonPointer, $reference->getJsonPointer()->getPointer());
-        $this->assertSame("somefile.json", $reference->getDocumentUri());
-        $this->assertSame("somefile.json$uriJsonPointer", $reference->getReference());
+        $this->assertSame('somefile.json', $reference->getDocumentUri());
+        $this->assertSame('somefile.json' . $uriJsonPointer, $reference->getReference());
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('rfcExamples')]
-    public function testEvaluation($jsonPointer, $uriJsonPointer, $expectedEvaluation): void
+    #[DataProvider('rfcExamples')]
+    public function testEvaluation(string $jsonPointer, string $uriJsonPointer, mixed $expectedEvaluation): void
     {
-        $document = json_decode((string) $this->rfcJsonDocument());
-        $pointer = new JsonPointer($jsonPointer);
+        $document = json_decode($this->rfcJsonDocument());
+        $pointer  = new JsonPointer($jsonPointer);
         $this->assertEquals($expectedEvaluation, $pointer->evaluate($document));
 
-        $document = json_decode((string) $this->rfcJsonDocument());
+        $document  = json_decode($this->rfcJsonDocument());
         $reference = JsonReference::createFromReference($uriJsonPointer);
         $this->assertEquals($expectedEvaluation, $reference->getJsonPointer()->evaluate($document));
     }
@@ -126,23 +131,17 @@ JSON;
     public function testEvaluationCases(): void
     {
         $document = (object) [
-            "" => (object) [
-                "" => 42
-            ]
+            '' => (object) ['' => 42],
         ];
-        $pointer = new JsonPointer('//');
+        $pointer  = new JsonPointer('//');
         $this->assertSame(42, $pointer->evaluate($document));
 
-        $document = [
-            "1" => null,
-        ];
-        $pointer = new JsonPointer('/1');
+        $document = ['1' => null];
+        $pointer  = new JsonPointer('/1');
         $this->assertNull($pointer->evaluate($document));
 
-        $document = (object) [
-            "k" => null,
-        ];
-        $pointer = new JsonPointer('/k');
+        $document = (object) ['k' => null];
+        $pointer  = new JsonPointer('/k');
         $this->assertNull($pointer->evaluate($document));
     }
 

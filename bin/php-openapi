@@ -1,14 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-/**
- * PHP OpenAPI validation tool
- *
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
-
-use cebe\openapi\ReferenceContext;
+use openapiphp\openapi\ReferenceContext;
 
 $composerAutoload = [
     __DIR__ . '/../vendor/autoload.php', // standalone with "composer install" run
@@ -127,13 +120,13 @@ switch ($command) {
         $referenceContext->mode = ReferenceContext::RESOLVE_MODE_INLINE;
         $openApi->resolveReferences($referenceContext);
 
-        $openApi->setDocumentContext($openApi, new \cebe\openapi\json\JsonPointer(''));
+        $openApi->setDocumentContext($openApi, new \openapiphp\openapi\json\JsonPointer(''));
 
         // Validate
 
         // OpenAPI version check
         $openApiVersion = $openApi->getMajorVersion();
-        if ($openApiVersion === \cebe\openapi\spec\OpenApi::VERSION_UNSUPPORTED) {
+        if ($openApiVersion === \openapiphp\openapi\spec\OpenApi::VERSION_UNSUPPORTED) {
             error("Unsupported OpenAPI version: " . $openApi->openapi);
         }
 
@@ -209,13 +202,13 @@ switch ($command) {
         $openApi = read_input($inputFile, $inputFormat);
         try {
             // set document context for correctly converting recursive references
-            $openApi->setDocumentContext($openApi, new \cebe\openapi\json\JsonPointer(''));
+            $openApi->setDocumentContext($openApi, new \openapiphp\openapi\json\JsonPointer(''));
             if ($referenceMode) {
                 $referenceContext = new ReferenceContext($openApi, $inputFile ? realpath($inputFile) : '');
                 $referenceContext->mode = $referenceMode;
                 $openApi->resolveReferences($referenceContext);
             }
-        } catch (\cebe\openapi\exceptions\UnresolvableReferenceException $e) {
+        } catch (\openapiphp\openapi\exceptions\UnresolvableReferenceException $e) {
             error("[\e[33m{$e->context}\e[0m] " . $e->getMessage());
         }
 
@@ -223,9 +216,9 @@ switch ($command) {
             if ($outputFormat === null) {
                 error("No output fromat specified, please specify --write-json or --write-yaml.", "usage");
             } elseif ($outputFormat === 'json') {
-                fwrite(STDOUT, \cebe\openapi\Writer::writeToJson($openApi));
+                fwrite(STDOUT, \openapiphp\openapi\Writer::writeToJson($openApi));
             } else {
-                fwrite(STDOUT, \cebe\openapi\Writer::writeToYaml($openApi));
+                fwrite(STDOUT, \openapiphp\openapi\Writer::writeToYaml($openApi));
             }
             fclose(STDOUT);
             exit(0);
@@ -243,9 +236,9 @@ switch ($command) {
             }
         }
         if ($outputFormat === 'json') {
-            \cebe\openapi\Writer::writeToJsonFile($openApi, $outputFile);
+            \openapiphp\openapi\Writer::writeToJsonFile($openApi, $outputFile);
         } else {
-            \cebe\openapi\Writer::writeToYamlFile($openApi, $outputFile);
+            \openapiphp\openapi\Writer::writeToYamlFile($openApi, $outputFile);
         }
         exit(0);
 
@@ -270,9 +263,9 @@ function read_input($inputFile, $inputFormat)
                 $inputFormat = (ltrim($fileContent) === '{' && rtrim($fileContent) === '}') ? 'json' : 'yaml';
             }
             if ($inputFormat === 'json') {
-                $openApi = \cebe\openapi\Reader::readFromJson($fileContent);
+                $openApi = \openapiphp\openapi\Reader::readFromJson($fileContent);
             } else {
-                $openApi = \cebe\openapi\Reader::readFromYaml($fileContent);
+                $openApi = \openapiphp\openapi\Reader::readFromYaml($fileContent);
             }
         } else {
             if (!file_exists($inputFile)) {
@@ -290,16 +283,16 @@ function read_input($inputFile, $inputFormat)
                 }
             }
             if ($inputFormat === 'json') {
-                $openApi = \cebe\openapi\Reader::readFromJsonFile(realpath($inputFile), \cebe\openapi\spec\OpenApi::class, false);
+                $openApi = \openapiphp\openapi\Reader::readFromJsonFile(realpath($inputFile), \openapiphp\openapi\spec\OpenApi::class, false);
             } else {
-                $openApi = \cebe\openapi\Reader::readFromYamlFile(realpath($inputFile), \cebe\openapi\spec\OpenApi::class, false);
+                $openApi = \openapiphp\openapi\Reader::readFromYamlFile(realpath($inputFile), \openapiphp\openapi\spec\OpenApi::class, false);
             }
         }
-        $openApi->setDocumentContext($openApi, new \cebe\openapi\json\JsonPointer(''));
+        $openApi->setDocumentContext($openApi, new \openapiphp\openapi\json\JsonPointer(''));
     } catch (Symfony\Component\Yaml\Exception\ParseException $e) {
         error($e->getMessage());
         exit(1);
-    } catch (cebe\openapi\exceptions\IOException $e) {
+    } catch (openapiphp\openapi\exceptions\IOException $e) {
         error($e->getMessage());
         exit(1);
     }

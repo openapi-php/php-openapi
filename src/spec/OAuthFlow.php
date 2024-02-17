@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
 
 /**
  * Configuration details for a supported OAuth Flow.
@@ -17,21 +14,18 @@ use cebe\openapi\SpecBaseObject;
  * @property string $authorizationUrl
  * @property string $tokenUrl
  * @property string $refreshUrl
- * @property string[] $scopes
+ * @property array<string> $scopes
  */
-class OAuthFlow extends SpecBaseObject
+final class OAuthFlow extends SpecBaseObject
 {
-
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
             'authorizationUrl' => Type::STRING,
-            'tokenUrl' => Type::STRING,
             'refreshUrl' => Type::STRING,
             'scopes' => [Type::STRING, Type::STRING],
+            'tokenUrl' => Type::STRING,
         ];
     }
 
@@ -40,7 +34,7 @@ class OAuthFlow extends SpecBaseObject
      *
      * Call `addError()` in case of validation errors.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
         $this->requireProperties(['scopes']);
         // TODO: Validation in context of the parent object

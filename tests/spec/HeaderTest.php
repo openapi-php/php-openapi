@@ -1,20 +1,23 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Header;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Header::class)]
-class HeaderTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Header;
+use openapiphp\openapi\spec\Schema;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Header::class)]
+class HeaderTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $header Header */
-        $header = Reader::readFromJson(<<<JSON
+        $header = Reader::readFromJson(<<<'JSON'
 {
   "description": "The number of allowed requests in the current period",
   "schema": {
@@ -23,14 +26,14 @@ class HeaderTest extends \PHPUnit\Framework\TestCase
 }
 JSON
             , Header::class);
+        assert($header instanceof Header);
 
         $result = $header->validate();
         $this->assertEquals([], $header->getErrors());
         $this->assertTrue($result);
 
         $this->assertEquals('The number of allowed requests in the current period', $header->description);
-        $this->assertInstanceOf(\cebe\openapi\spec\Schema::class, $header->schema);
+        $this->assertInstanceOf(Schema::class, $header->schema);
         $this->assertEquals('integer', $header->schema->type);
     }
-
 }

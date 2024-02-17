@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-namespace cebe\openapi\spec;
+namespace openapiphp\openapi\spec;
 
-use cebe\openapi\SpecBaseObject;
+use openapiphp\openapi\SpecBaseObject;
 
 /**
  * Describes a single response from an API Operation, including design-time, static links to operations based on the response.
@@ -21,9 +18,7 @@ use cebe\openapi\SpecBaseObject;
  */
 class Response extends SpecBaseObject
 {
-    /**
-     * @return array array of attributes available in this object.
-     */
+    /** @inheritDoc */
     protected function attributes(): array
     {
         return [
@@ -37,7 +32,7 @@ class Response extends SpecBaseObject
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    protected function performValidation()
+    protected function performValidation(): void
     {
         $this->requireProperties(['description']);
     }

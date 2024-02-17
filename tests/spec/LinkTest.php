@@ -1,20 +1,22 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
- * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
- */
+declare(strict_types=1);
 
-use cebe\openapi\Reader;
-use cebe\openapi\spec\Link;
+namespace OpenApiTest\spec;
 
-#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Link::class)]
-class LinkTest extends \PHPUnit\Framework\TestCase
+use openapiphp\openapi\Reader;
+use openapiphp\openapi\spec\Link;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+use function assert;
+
+#[CoversClass(Link::class)]
+class LinkTest extends TestCase
 {
     public function testRead(): void
     {
-        /** @var $link Link */
-        $link = Reader::readFromJson(<<<JSON
+        $link = Reader::readFromJson(<<<'JSON'
 {
     "operationId": "getUserAddress",
     "parameters": {
@@ -23,6 +25,7 @@ class LinkTest extends \PHPUnit\Framework\TestCase
 }
 JSON
             , Link::class);
+        assert($link instanceof Link);
 
         $result = $link->validate();
         $this->assertEquals([], $link->getErrors());
@@ -37,19 +40,17 @@ JSON
 
     public function testValidateBothOperationIdAndOperationRef(): void
     {
-        /** @var $link Link */
-        $link = Reader::readFromJson(<<<JSON
+        $link = Reader::readFromJson(<<<'JSON'
 {
     "operationId": "getUserAddress",
     "operationRef": "getUserAddressRef"
 }
 JSON
             , Link::class);
+        assert($link instanceof Link);
 
         $result = $link->validate();
-        $this->assertEquals([
-            'Link: operationId and operationRef are mutually exclusive.'
-        ], $link->getErrors());
+        $this->assertEquals(['Link: operationId and operationRef are mutually exclusive.'], $link->getErrors());
         $this->assertFalse($result);
     }
 }
