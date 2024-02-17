@@ -56,7 +56,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
                 } else {
                     $givenType = gettype($response);
                     if (is_object($response)) {
-                        $givenType = get_class($response);
+                        $givenType = $response::class;
                     }
                     throw new TypeErrorException(sprintf('Response MUST be either an array, a Response or a Reference object, "%s" given', $givenType));
                 }
@@ -109,7 +109,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
     /**
      * @param string $statusCode HTTP status code
      */
-    public function removeResponse($statusCode)
+    public function removeResponse($statusCode): void
     {
         unset($this->_responses[$statusCode]);
     }
@@ -149,9 +149,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
     {
         if (($pos = $this->getDocumentPosition()) !== null) {
             $errors = [
-                array_map(function ($e) use ($pos) {
-                    return "[{$pos}] $e";
-                }, $this->_errors)
+                array_map(fn ($e) => "[{$pos}] $e", $this->_errors)
             ];
         } else {
             $errors = [$this->_errors];
@@ -173,7 +171,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
      * @return boolean true on success or false on failure.
      * The return value will be casted to boolean if non-boolean was returned.
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->hasResponse($offset);
     }
@@ -185,7 +183,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
      * @return mixed Can return all value types.
      */
     #[\ReturnTypeWillChange]
-    public function offsetGet($offset) //: mixed
+    public function offsetGet(mixed $offset) //: mixed
     {
         return $this->getResponse($offset);
     }
@@ -196,7 +194,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
      * @param mixed $offset The offset to assign the value to.
      * @param mixed $value The value to set.
      */
-    public function offsetSet($offset, $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->addResponse($offset, $value);
     }
@@ -206,7 +204,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
      * @link http://php.net/manual/en/arrayaccess.offsetunset.php
      * @param mixed $offset The offset to unset.
      */
-    public function offsetUnset($offset): void
+    public function offsetUnset(mixed $offset): void
     {
         $this->removeResponse($offset);
     }
@@ -236,7 +234,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
      * Resolves all Reference Objects in this object and replaces them with their resolution.
      * @throws UnresolvableReferenceException
      */
-    public function resolveReferences(ReferenceContext $context = null)
+    public function resolveReferences(ReferenceContext $context = null): void
     {
         foreach ($this->_responses as $key => $response) {
             if ($response instanceof Reference) {
@@ -255,7 +253,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
     /**
      * Set context for all Reference Objects in this object.
      */
-    public function setReferenceContext(ReferenceContext $context)
+    public function setReferenceContext(ReferenceContext $context): void
     {
         foreach ($this->_responses as $key => $response) {
             if ($response instanceof Reference) {
@@ -274,7 +272,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
      * @param SpecObjectInterface $baseDocument
      * @param JsonPointer $jsonPointer
      */
-    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer)
+    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer): void
     {
         $this->_baseDocument = $baseDocument;
         $this->_jsonPointer = $jsonPointer;

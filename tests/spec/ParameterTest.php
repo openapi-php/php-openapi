@@ -8,12 +8,10 @@
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Parameter;
 
-/**
- * @covers \cebe\openapi\spec\Parameter
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Parameter::class)]
 class ParameterTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
@@ -80,7 +78,7 @@ YAML
         $this->assertInstanceOf(\cebe\openapi\spec\Schema::class, $parameter->content['application/json']->schema);
     }
 
-    public function testDefaultValuesQuery()
+    public function testDefaultValuesQuery(): void
     {
         /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
@@ -99,7 +97,7 @@ YAML
         $this->assertFalse($parameter->allowReserved);
     }
 
-    public function testDefaultValuesPath()
+    public function testDefaultValuesPath(): void
     {
         /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
@@ -118,7 +116,7 @@ YAML
         $this->assertFalse($parameter->explode);
     }
 
-    public function testDefaultValuesHeader()
+    public function testDefaultValuesHeader(): void
     {
         /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
@@ -136,7 +134,7 @@ YAML
         $this->assertFalse($parameter->explode);
     }
 
-    public function testDefaultValuesCookie()
+    public function testDefaultValuesCookie(): void
     {
         /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
@@ -154,7 +152,7 @@ YAML
         $this->assertTrue($parameter->explode);
     }
 
-    public function testItValidatesSchemaAndContentCombination()
+    public function testItValidatesSchemaAndContentCombination(): void
     {
         /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
@@ -174,7 +172,7 @@ YAML
         $this->assertFalse($result);
     }
 
-    public function testItValidatesContentCanHaveOnlySingleKey()
+    public function testItValidatesContentCanHaveOnlySingleKey(): void
     {
         /** @var $parameter Parameter */
         $parameter = Reader::readFromYaml(<<<'YAML'
@@ -196,7 +194,7 @@ YAML
     }
 
 
-    public function testItValidatesSupportedSerializationStyles()
+    public function testItValidatesSupportedSerializationStyles(): void
     {
         // 1. Prepare test inputs
         $specTemplate = <<<YAML

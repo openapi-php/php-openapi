@@ -272,9 +272,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
 
         if (($pos = $this->getDocumentPosition()) !== null) {
             $errors = [
-                array_map(function ($e) use ($pos) {
-                    return "[{$pos->getPointer()}] $e";
-                }, $this->_errors)
+                array_map(fn ($e) => "[{$pos->getPointer()}] $e", $this->_errors)
             ];
         } else {
             $errors = [$this->_errors];
@@ -301,7 +299,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
      */
     protected function addError(string $error, $class = '')
     {
-        $shortName = explode('\\', $class);
+        $shortName = explode('\\', (string) $class);
         $this->_errors[] = end($shortName).$error;
     }
 
@@ -329,7 +327,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
     {
         foreach ($names as $name) {
             if (!isset($this->_properties[$name])) {
-                $this->addError(" is missing required property: $name", get_class($this));
+                $this->addError(" is missing required property: $name", static::class);
             }
         }
 
@@ -340,21 +338,21 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
                 }
             }
 
-            $this->addError(" is missing at least one of the following required properties: " . implode(', ', $atLeastOne), get_class($this));
+            $this->addError(" is missing at least one of the following required properties: " . implode(', ', $atLeastOne), static::class);
         }
     }
 
     protected function validateEmail(string $property)
     {
-        if (!empty($this->$property) && strpos($this->$property, '@') === false) {
-            $this->addError('::$'.$property.' does not seem to be a valid email address: ' . $this->$property, get_class($this));
+        if (!empty($this->$property) && !str_contains((string) $this->$property, '@')) {
+            $this->addError('::$'.$property.' does not seem to be a valid email address: ' . $this->$property, static::class);
         }
     }
 
     protected function validateUrl(string $property)
     {
-        if (!empty($this->$property) && strpos($this->$property, '//') === false) {
-            $this->addError('::$'.$property.' does not seem to be a valid URL: ' . $this->$property, get_class($this));
+        if (!empty($this->$property) && !str_contains((string) $this->$property, '//')) {
+            $this->addError('::$'.$property.' does not seem to be a valid URL: ' . $this->$property, static::class);
         }
     }
 
@@ -375,7 +373,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
             }
             return null;
         }
-        throw new UnknownPropertyException('Getting unknown property: ' . \get_class($this) . '::' . $name);
+        throw new UnknownPropertyException('Getting unknown property: ' . static::class . '::' . $name);
     }
 
     public function __set($name, $value)
@@ -401,7 +399,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
      * Resolves all Reference Objects in this object and replaces them with their resolution.
      * @throws exceptions\UnresolvableReferenceException in case resolving a reference fails.
      */
-    public function resolveReferences(ReferenceContext $context = null)
+    public function resolveReferences(ReferenceContext $context = null): void
     {
         // avoid recursion to get stuck in a loop
         if ($this->_recursingReferences) {
@@ -439,7 +437,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
     /**
      * Set context for all Reference Objects in this object.
      */
-    public function setReferenceContext(ReferenceContext $context)
+    public function setReferenceContext(ReferenceContext $context): void
     {
         // avoid recursion to get stuck in a loop
         if ($this->_recursingReferenceContext) {
@@ -474,7 +472,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
      * @param SpecObjectInterface $baseDocument
      * @param JsonPointer $jsonPointer
      */
-    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer)
+    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer): void
     {
         $this->_baseDocument = $baseDocument;
         $this->_jsonPointer = $jsonPointer;
@@ -528,7 +526,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
     {
         $extensions = [];
         foreach ($this->_properties as $propertyKey => $extension) {
-            if (strpos($propertyKey, 'x-') !== 0) {
+            if (!str_starts_with((string) $propertyKey, 'x-')) {
                 continue;
             }
             $extensions[$propertyKey] = $extension;

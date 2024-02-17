@@ -8,12 +8,10 @@
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Callback;
 
-/**
- * @covers \cebe\openapi\spec\Callback
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Callback::class)]
 class CallbackTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $callback \cebe\openapi\spec\Callback */
         $callback = Reader::readFromYaml(<<<'YAML'

@@ -8,12 +8,10 @@
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Xml;
 
-/**
- * @covers \cebe\openapi\spec\Xml
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Xml::class)]
 class XmlTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $xml Xml */
         $xml = Reader::readFromYaml(<<<YAML

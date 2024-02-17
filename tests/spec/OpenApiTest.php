@@ -9,12 +9,10 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\Reader;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * @covers \cebe\openapi\spec\OpenApi
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\OpenApi::class)]
 class OpenApiTest extends \PHPUnit\Framework\TestCase
 {
-    public function testEmpty()
+    public function testEmpty(): void
     {
         $openapi = new OpenApi([]);
 
@@ -32,7 +30,7 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('/', $openapi->servers[0]->url);
     }
 
-    public function testReadPetStore()
+    public function testReadPetStore(): void
     {
         $openApiFile = __DIR__ . '/../../vendor/oai/openapi-specification-3.0/examples/v3.0/petstore.yaml';
 
@@ -87,14 +85,14 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($openapi->externalDocs);
     }
 
-    public function assertAllInstanceOf($className, $array)
+    public function assertAllInstanceOf($className, $array): void
     {
         foreach($array as $k => $v) {
             $this->assertInstanceOf($className, $v, "Asserting that item with key '$k' is instance of $className");
         }
     }
 
-    public function specProvider()
+    public static function specProvider()
     {
         // examples from https://github.com/OAI/OpenAPI-Specification/tree/master/examples/v3.0
         $oaiExamples = [
@@ -170,7 +168,7 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
         $it->rewind();
         while($it->valid()) {
             if ($it->getExtension() === 'yml'
-             && strpos($it->getSubPath(), 'common') === false
+             && !str_contains($it->getSubPath(), 'common')
              && $it->getBasename() !== 'voice.v2.yml' // contains invalid references
             ) {
                 $nexmoExamples[] = $it->key();
@@ -191,12 +189,10 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @dataProvider specProvider
-     */
-    public function testSpecs($openApiFile)
+    #[\PHPUnit\Framework\Attributes\DataProvider('specProvider')]
+    public function testSpecs($openApiFile): void
     {
-        if (strtolower(substr($openApiFile, -5, 5)) === '.json') {
+        if (strtolower(substr((string) $openApiFile, -5, 5)) === '.json') {
             $json = json_decode(file_get_contents($openApiFile), true);
             $openapi = new OpenApi($json);
         } else {
@@ -246,7 +242,7 @@ class OpenApiTest extends \PHPUnit\Framework\TestCase
 
     }
 
-    public function testVersions()
+    public function testVersions(): void
     {
         $yaml = <<<YAML
 openapi: 3.0.2

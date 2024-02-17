@@ -9,13 +9,11 @@ use cebe\openapi\Reader;
 use cebe\openapi\spec\Operation;
 use cebe\openapi\spec\ExternalDocumentation;
 
-/**
- * @covers \cebe\openapi\spec\Operation
- * @covers \cebe\openapi\spec\ExternalDocumentation
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Operation::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\ExternalDocumentation::class)]
 class OperationTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $operation Operation */
         $operation = Reader::readFromYaml(<<<'YAML'

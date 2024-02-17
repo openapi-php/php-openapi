@@ -9,13 +9,11 @@ use cebe\openapi\Reader;
 use cebe\openapi\spec\Server;
 use cebe\openapi\spec\ServerVariable;
 
-/**
- * @covers \cebe\openapi\spec\Server
- * @covers \cebe\openapi\spec\ServerVariable
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Server::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\ServerVariable::class)]
 class ServerTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $server Server */
         $server = Reader::readFromJson(<<<JSON

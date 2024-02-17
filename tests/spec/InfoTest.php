@@ -10,14 +10,12 @@ use cebe\openapi\spec\Contact;
 use cebe\openapi\spec\Info;
 use cebe\openapi\spec\License;
 
-/**
- * @covers \cebe\openapi\spec\Info
- * @covers \cebe\openapi\spec\Contact
- * @covers \cebe\openapi\spec\License
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Info::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Contact::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\License::class)]
 class InfoTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'
@@ -53,7 +51,7 @@ YAML
         $this->assertEquals('https://www.apache.org/licenses/LICENSE-2.0.html', $info->license->url);
     }
 
-    public function testReadInvalid()
+    public function testReadInvalid(): void
     {
         /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'
@@ -75,7 +73,7 @@ YAML
 
     }
 
-    public function testReadInvalidContact()
+    public function testReadInvalidContact(): void
     {
         /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'
@@ -100,7 +98,7 @@ YAML
 
     }
 
-    public function testReadInvalidLicense()
+    public function testReadInvalidLicense(): void
     {
         /** @var $info Info */
         $info = Reader::readFromYaml(<<<'YAML'

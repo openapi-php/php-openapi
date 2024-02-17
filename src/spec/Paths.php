@@ -65,7 +65,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
             } else {
                 $givenType = gettype($object);
                 if (is_object($object)) {
-                    $givenType = get_class($object);
+                    $givenType = $object::class;
                 }
                 throw new TypeErrorException(sprintf('Path MUST be either array or PathItem object, "%s" given', $givenType));
             }
@@ -144,7 +144,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
             if (!$path->validate()) {
                 $valid = false;
             }
-            if (strpos($key, '/') !== 0) {
+            if (!str_starts_with($key, '/')) {
                 $this->_errors[] = "Path must begin with /: $key";
             }
         }
@@ -159,9 +159,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
     {
         if (($pos = $this->getDocumentPosition()) !== null) {
             $errors = [
-                array_map(function ($e) use ($pos) {
-                    return "[{$pos}] $e";
-                }, $this->_errors)
+                array_map(fn ($e) => "[{$pos}] $e", $this->_errors)
             ];
         } else {
             $errors = [$this->_errors];
@@ -183,7 +181,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
      * @return boolean true on success or false on failure.
      * The return value will be casted to boolean if non-boolean was returned.
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->hasPath($offset);
     }
@@ -195,7 +193,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
      * @return PathItem Can return all value types.
      */
     #[\ReturnTypeWillChange]
-    public function offsetGet($offset) //: mixed
+    public function offsetGet(mixed $offset) //: mixed
     {
         return $this->getPath($offset);
     }
@@ -206,7 +204,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
      * @param mixed $offset The offset to assign the value to.
      * @param mixed $value The value to set.
      */
-    public function offsetSet($offset, $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->addPath($offset, $value);
     }
@@ -216,7 +214,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
      * @link http://php.net/manual/en/arrayaccess.offsetunset.php
      * @param mixed $offset The offset to unset.
      */
-    public function offsetUnset($offset): void
+    public function offsetUnset(mixed $offset): void
     {
         $this->removePath($offset);
     }
@@ -246,7 +244,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
      * Resolves all Reference Objects in this object and replaces them with their resolution.
      * @throws UnresolvableReferenceException
      */
-    public function resolveReferences(ReferenceContext $context = null)
+    public function resolveReferences(ReferenceContext $context = null): void
     {
         foreach ($this->_paths as $key => $path) {
             if ($path === null) {
@@ -259,7 +257,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
     /**
      * Set context for all Reference Objects in this object.
      */
-    public function setReferenceContext(ReferenceContext $context)
+    public function setReferenceContext(ReferenceContext $context): void
     {
         foreach ($this->_paths as $key => $path) {
             if ($path === null) {
@@ -277,7 +275,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
      * @param SpecObjectInterface $baseDocument
      * @param JsonPointer $jsonPointer
      */
-    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer)
+    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer): void
     {
         $this->_baseDocument = $baseDocument;
         $this->_jsonPointer = $jsonPointer;

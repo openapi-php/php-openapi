@@ -14,14 +14,14 @@ namespace cebe\openapi\spec;
  */
 class Type
 {
-    const ANY = 'any';
-    const INTEGER = 'integer';
-    const NUMBER = 'number';
-    const STRING = 'string';
-    const BOOLEAN = 'boolean';
-    const OBJECT = 'object';
-    const ARRAY = 'array';
-    const NULL = 'null'; // Since OpenAPI 3.1
+    public const ANY = 'any';
+    public const INTEGER = 'integer';
+    public const NUMBER = 'number';
+    public const STRING = 'string';
+    public const BOOLEAN = 'boolean';
+    public const OBJECT = 'object';
+    public const ARRAY = 'array';
+    public const NULL = 'null'; // Since OpenAPI 3.1
 
     /**
      * Indicate whether a type is a scalar type, i.e. not an array or object.

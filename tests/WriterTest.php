@@ -21,7 +21,7 @@ class WriterTest extends \PHPUnit\Framework\TestCase
         ], $merge));
     }
 
-    public function testWriteJson()
+    public function testWriteJson(): void
     {
         $openapi = $this->createOpenAPI();
 
@@ -46,7 +46,7 @@ JSON
         );
     }
 
-    public function testWriteJsonMofify()
+    public function testWriteJsonMofify(): void
     {
         $openapi = $this->createOpenAPI();
 
@@ -79,7 +79,7 @@ JSON
         );
     }
 
-    public function testWriteYaml()
+    public function testWriteYaml(): void
     {
         $openapi = $this->createOpenAPI();
 
@@ -103,7 +103,7 @@ YAML
         );
     }
 
-    public function testWriteEmptySecurityJson()
+    public function testWriteEmptySecurityJson(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [],
@@ -132,7 +132,7 @@ JSON
     }
 
 
-    public function testWriteEmptySecurityYaml()
+    public function testWriteEmptySecurityYaml(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [],
@@ -159,7 +159,7 @@ YAML
         );
     }
 
-    public function testWriteEmptySecurityPartJson()
+    public function testWriteEmptySecurityPartJson(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [new SecurityRequirement(['Bearer' => []])],
@@ -192,7 +192,7 @@ JSON
     }
 
 
-    public function testWriteEmptySecurityPartYaml()
+    public function testWriteEmptySecurityPartYaml(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [new SecurityRequirement(['Bearer' => []])],

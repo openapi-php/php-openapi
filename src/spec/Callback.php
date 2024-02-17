@@ -76,9 +76,6 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
         return $this->_url;
     }
 
-    /**
-     * @param string $url
-     */
     public function setUrl(string $url): void
     {
         $this->_url = $url;
@@ -118,9 +115,7 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
     public function getErrors(): array
     {
         if (($pos = $this->getDocumentPosition()) !== null) {
-            $errors = array_map(function ($e) use ($pos) {
-                return "[{$pos}] $e";
-            }, $this->_errors);
+            $errors = array_map(fn ($e) => "[{$pos}] $e", $this->_errors);
         } else {
             $errors = $this->_errors;
         }
@@ -133,7 +128,7 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
      * Resolves all Reference Objects in this object and replaces them with their resolution.
      * @throws UnresolvableReferenceException
      */
-    public function resolveReferences(ReferenceContext $context = null)
+    public function resolveReferences(ReferenceContext $context = null): void
     {
         if ($this->_pathItem !== null) {
             $this->_pathItem->resolveReferences($context);
@@ -143,7 +138,7 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
     /**
      * Set context for all Reference Objects in this object.
      */
-    public function setReferenceContext(ReferenceContext $context)
+    public function setReferenceContext(ReferenceContext $context): void
     {
         if ($this->_pathItem !== null) {
             $this->_pathItem->setReferenceContext($context);
@@ -158,7 +153,7 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
      * @param SpecObjectInterface $baseDocument
      * @param JsonPointer $jsonPointer
      */
-    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer)
+    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer): void
     {
         $this->_baseDocument = $baseDocument;
         $this->_jsonPointer = $jsonPointer;

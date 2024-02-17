@@ -8,12 +8,10 @@
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Link;
 
-/**
- * @covers \cebe\openapi\spec\Link
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Link::class)]
 class LinkTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $link Link */
         $link = Reader::readFromJson(<<<JSON
@@ -37,7 +35,7 @@ JSON
         $this->assertEquals(null, $link->server);
     }
 
-    public function testValidateBothOperationIdAndOperationRef()
+    public function testValidateBothOperationIdAndOperationRef(): void
     {
         /** @var $link Link */
         $link = Reader::readFromJson(<<<JSON

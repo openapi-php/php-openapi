@@ -16,7 +16,7 @@ namespace cebe\openapi\json;
  * @link https://tools.ietf.org/html/rfc6901
  * @see JsonReference
  */
-final class JsonPointer
+final class JsonPointer implements \Stringable
 {
     /**
      * @var string
@@ -37,7 +37,7 @@ final class JsonPointer
         $this->_pointer = $pointer;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->_pointer;
     }
@@ -59,7 +59,7 @@ final class JsonPointer
             return [];
         }
         $pointer = substr($this->_pointer, 1);
-        return array_map([get_class($this), 'decode'], explode('/', $pointer));
+        return array_map([self::class, 'decode'], explode('/', $pointer));
     }
 
     /**
@@ -87,7 +87,7 @@ final class JsonPointer
         if (empty($path)) {
             return new JsonPointer('');
         }
-        return new JsonPointer('/' . implode('/', array_map([get_class($this), 'encode'], $path)));
+        return new JsonPointer('/' . implode('/', array_map([self::class, 'encode'], $path)));
     }
 
     /**
@@ -96,11 +96,10 @@ final class JsonPointer
      * Note that this does only resolve the JSON Pointer, it will not load external
      * documents by URI. Loading the Document from the URI is supposed to be done outside of this class.
      *
-     * @param mixed $jsonDocument
      * @return mixed
      * @throws NonexistentJsonPointerReferenceException
      */
-    public function evaluate($jsonDocument)
+    public function evaluate(mixed $jsonDocument)
     {
         $currentReference = $jsonDocument;
         $currentPath = '';

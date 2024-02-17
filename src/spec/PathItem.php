@@ -138,7 +138,7 @@ class PathItem extends SpecBaseObject
     /**
      * Set context for all Reference Objects in this object.
      */
-    public function setReferenceContext(ReferenceContext $context)
+    public function setReferenceContext(ReferenceContext $context): void
     {
         if ($this->_ref instanceof Reference) {
             $this->_ref->setContext($context);
@@ -150,7 +150,7 @@ class PathItem extends SpecBaseObject
      * Resolves all Reference Objects in this object and replaces them with their resolution.
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException in case resolving a reference fails.
      */
-    public function resolveReferences(ReferenceContext $context = null)
+    public function resolveReferences(ReferenceContext $context = null): void
     {
         if ($this->_ref instanceof Reference) {
             $pathItem = $this->_ref->resolve($context);
@@ -208,7 +208,7 @@ class PathItem extends SpecBaseObject
      * @param SpecObjectInterface $baseDocument
      * @param JsonPointer $jsonPointer
      */
-    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer)
+    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer): void
     {
         parent::setDocumentContext($baseDocument, $jsonPointer);
         if ($this->_ref instanceof Reference) {

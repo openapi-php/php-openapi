@@ -8,12 +8,10 @@
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Header;
 
-/**
- * @covers \cebe\openapi\spec\Header
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Header::class)]
 class HeaderTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $header Header */
         $header = Reader::readFromJson(<<<JSON

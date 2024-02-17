@@ -12,13 +12,11 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * @covers \cebe\openapi\spec\MediaType
- * @covers \cebe\openapi\spec\Example
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\MediaType::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Example::class)]
 class MediaTypeTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $mediaType MediaType */
         $mediaType = Reader::readFromYaml(<<<'YAML'
@@ -78,7 +76,7 @@ YAML
 
     }
 
-    public function testCreateionFromObjects()
+    public function testCreateionFromObjects(): void
     {
         $mediaType = new MediaType([
             'schema' => new \cebe\openapi\spec\Schema([
@@ -108,7 +106,7 @@ YAML
         $this->assertInstanceOf(\cebe\openapi\spec\Encoding::class, $mediaType->encoding['profileImage']);
     }
 
-    public function badEncodingProvider()
+    public static function badEncodingProvider()
     {
         yield [['encoding' => ['id' => 'foo']], 'Encoding MUST be either array or Encoding object, "string" given'];
         yield [['encoding' => ['id' => 42]], 'Encoding MUST be either array or Encoding object, "integer" given'];
@@ -117,10 +115,8 @@ YAML
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    /**
-     * @dataProvider badEncodingProvider
-     */
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException)
+    #[\PHPUnit\Framework\Attributes\DataProvider('badEncodingProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
     {
         $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);
@@ -128,7 +124,7 @@ YAML
         new MediaType($config);
     }
 
-    public function testUnresolvedReferencesInEncoding()
+    public function testUnresolvedReferencesInEncoding(): void
     {
         $yaml = Yaml::parse(
             <<<'YAML'

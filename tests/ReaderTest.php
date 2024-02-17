@@ -7,7 +7,7 @@
 
 class ReaderTest extends \PHPUnit\Framework\TestCase
 {
-    public function testReadJson()
+    public function testReadJson(): void
     {
         $openapi = \cebe\openapi\Reader::readFromJson(
             <<<JSON
@@ -27,7 +27,7 @@ JSON
         $this->assertApiContent($openapi);
     }
 
-    public function testReadYaml()
+    public function testReadYaml(): void
     {
         $openapi = \cebe\openapi\Reader::readFromYaml(
             <<<YAML
@@ -46,7 +46,7 @@ YAML
     /**
      * Test if reading YAML file with anchors works
      */
-    public function testReadYamlWithAnchors()
+    public function testReadYamlWithAnchors(): void
     {
         $openApiFile = __DIR__ . '/spec/data/traits-mixins.yaml';
         $openapi = \cebe\openapi\Reader::readFromYamlFile($openApiFile);
@@ -84,7 +84,7 @@ YAML
         $this->assertEquals('uuid of the resource', $foo->properties['uuid']->description);
     }
 
-    private function assertApiContent(\cebe\openapi\spec\OpenApi $openapi)
+    private function assertApiContent(\cebe\openapi\spec\OpenApi $openapi): void
     {
         $result = $openapi->validate();
         $this->assertEquals([], $openapi->getErrors());
@@ -99,7 +99,7 @@ YAML
     /**
      * @see https://github.com/symfony/symfony/issues/34805
      */
-    public function testSymfonyYamlBugHunt()
+    public function testSymfonyYamlBugHunt(): void
     {
         $openApiFile = __DIR__ . '/../vendor/oai/openapi-specification-3.0/examples/v3.0/uspto.yaml';
         $openapi = \cebe\openapi\Reader::readFromYamlFile($openApiFile);

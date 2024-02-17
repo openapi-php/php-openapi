@@ -10,13 +10,11 @@ use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\Response;
 use cebe\openapi\spec\Responses;
 
-/**
- * @covers \cebe\openapi\spec\Response
- * @covers \cebe\openapi\spec\Responses
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Response::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Responses::class)]
 class ResponseTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $response Response */
         $response = Reader::readFromJson(<<<'JSON'
@@ -68,7 +66,7 @@ JSON
         $this->assertFalse($result);
     }
 
-    public function testResponses()
+    public function testResponses(): void
     {
         /** @var $responses Responses */
         $responses = Reader::readFromYaml(<<<'YAML'
@@ -128,7 +126,7 @@ YAML
         $this->assertEquals([200, 'default'], $keys);
     }
 
-    public function testResponseCodes()
+    public function testResponseCodes(): void
     {
         /** @var $responses Responses */
         $responses = Reader::readFromYaml(<<<'YAML'
@@ -168,7 +166,7 @@ YAML
 
     }
 
-    public function testCreateionFromObjects()
+    public function testCreateionFromObjects(): void
     {
         $responses = new Responses([
             200 => new Response(['description' => 'A list of pets.']),
@@ -179,7 +177,7 @@ YAML
         $this->assertSame('The pets list is gone 🙀', $responses->getResponse(404)->description);
     }
 
-    public function badResponseProvider()
+    public static function badResponseProvider()
     {
         yield [['200' => 'foo'], 'Response MUST be either an array, a Response or a Reference object, "string" given'];
         yield [['200' => 42], 'Response MUST be either an array, a Response or a Reference object, "integer" given'];
@@ -188,10 +186,8 @@ YAML
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    /**
-     * @dataProvider badResponseProvider
-     */
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException)
+    #[\PHPUnit\Framework\Attributes\DataProvider('badResponseProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
     {
         $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);

@@ -28,14 +28,14 @@ use cebe\openapi\SpecBaseObject;
  */
 class OpenApi extends SpecBaseObject
 {
-    const VERSION_3_0 = '3.0';
-    const VERSION_3_1 = '3.1';
-    const VERSION_UNSUPPORTED = 'unsupported';
+    public const VERSION_3_0 = '3.0';
+    public const VERSION_3_1 = '3.1';
+    public const VERSION_UNSUPPORTED = 'unsupported';
 
     /**
      * Pattern used to validate OpenAPI versions.
      */
-    const PATTERN_VERSION = '/^(3\.(0|1))\.\d+(-rc\d)?$/i';
+    public const PATTERN_VERSION = '/^(3\.(0|1))\.\d+(-rc\d)?$/i';
 
     /**
      * @return array array of attributes available in this object.
@@ -83,7 +83,7 @@ class OpenApi extends SpecBaseObject
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
-    public function performValidation()
+    public function performValidation(): void
     {
         if ($this->getMajorVersion() === static::VERSION_3_0) {
             $this->requireProperties(['openapi', 'info', 'paths']);

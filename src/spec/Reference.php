@@ -119,9 +119,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
     public function getErrors(): array
     {
         if (($pos = $this->getDocumentPosition()) !== null) {
-            return array_map(function ($e) use ($pos) {
-                return "[{$pos}] $e";
-            }, $this->_errors);
+            return array_map(fn ($e) => "[{$pos}] $e", $this->_errors);
         } else {
             return $this->_errors;
         }
@@ -143,10 +141,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
         return $this->_jsonReference;
     }
 
-    /**
-     * @param ReferenceContext $context
-     */
-    public function setContext(ReferenceContext $context)
+    public function setContext(ReferenceContext $context): void
     {
         $this->_context = $context;
     }
@@ -237,7 +232,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
 
             // transitive reference
             if ($referencedObject instanceof Reference) {
-                if ($context->mode === ReferenceContext::RESOLVE_MODE_INLINE && strncmp($referencedObject->getReference(), '#', 1) === 0) {
+                if ($context->mode === ReferenceContext::RESOLVE_MODE_INLINE && str_starts_with($referencedObject->getReference(), '#')) {
                     $referencedObject->setContext($context);
                 } else {
                     return $this->resolveTransitiveReference($referencedObject, $context);
@@ -346,7 +341,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
      */
     private function makeRelativePath($base, $path)
     {
-        if (strpos($path, dirname($base)) === 0) {
+        if (str_starts_with($path, dirname($base))) {
             return './' . substr($path, strlen(dirname($base) . '/'));
         }
 
@@ -357,7 +352,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
      * Resolves all Reference Objects in this object and replaces them with their resolution.
      * @throws UnresolvableReferenceException
      */
-    public function resolveReferences(ReferenceContext $context = null)
+    public function resolveReferences(ReferenceContext $context = null): never
     {
         throw new UnresolvableReferenceException('Cyclic reference detected, resolveReferences() called on a Reference Object.');
     }
@@ -366,7 +361,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
      * Set context for all Reference Objects in this object.
      * @throws UnresolvableReferenceException
      */
-    public function setReferenceContext(ReferenceContext $context)
+    public function setReferenceContext(ReferenceContext $context): never
     {
         throw new UnresolvableReferenceException('Cyclic reference detected, setReferenceContext() called on a Reference Object.');
     }
@@ -379,7 +374,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
      * @param SpecObjectInterface $baseDocument
      * @param JsonPointer $jsonPointer
      */
-    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer)
+    public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer): void
     {
         $this->_baseDocument = $baseDocument;
         $this->_jsonPointer = $jsonPointer;

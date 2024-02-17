@@ -10,13 +10,11 @@ use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\RequestBody;
 use cebe\openapi\spec\Encoding;
 
-/**
- * @covers \cebe\openapi\spec\RequestBody
- * @covers \cebe\openapi\spec\Encoding
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\RequestBody::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Encoding::class)]
 class RequestBodyTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $requestBody RequestBody */
         $requestBody = Reader::readFromJson(<<<'JSON'
@@ -59,7 +57,7 @@ JSON
         $this->assertFalse($result);
     }
 
-    public function testEncoding()
+    public function testEncoding(): void
     {
         /** @var $requestBody RequestBody */
         $requestBody = Reader::readFromYaml(<<<'YAML'

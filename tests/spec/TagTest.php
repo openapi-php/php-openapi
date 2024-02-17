@@ -9,12 +9,10 @@ use cebe\openapi\Reader;
 use cebe\openapi\spec\ExternalDocumentation;
 use cebe\openapi\spec\Tag;
 
-/**
- * @covers \cebe\openapi\spec\Tag
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Tag::class)]
 class TagTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $tag Tag */
         $tag = Reader::readFromYaml(<<<YAML
