@@ -1,16 +1,19 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Server;
 use cebe\openapi\spec\ServerVariable;
 
-/**
- * @covers \cebe\openapi\spec\Server
- * @covers \cebe\openapi\spec\ServerVariable
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Server::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\ServerVariable::class)]
 class ServerTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $server Server */
         $server = Reader::readFromJson(<<<JSON
@@ -35,7 +38,7 @@ class ServerTest extends \PHPUnit\Framework\TestCase
   }
 }
 JSON
-        , Server::class);
+            , Server::class);
 
         $result = $server->validate();
         $this->assertEquals([], $server->getErrors());
@@ -73,7 +76,7 @@ JSON
   }
 }
 JSON
-        , Server::class);
+            , Server::class);
 
         $result = $server->validate();
         $this->assertEquals(['ServerVariable is missing required property: default'], $server->getErrors());

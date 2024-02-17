@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Parameter;
@@ -9,12 +14,10 @@ use cebe\openapi\spec\Response;
 use cebe\openapi\spec\Schema;
 use cebe\openapi\spec\Example;
 
-/**
- * @covers \cebe\openapi\spec\Reference
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Reference::class)]
 class ReferenceTest extends \PHPUnit\Framework\TestCase
 {
-    public function testResolveInDocument()
+    public function testResolveInDocument(): void
     {
         /** @var $openapi OpenApi */
         $openapi = Reader::readFromYaml(<<<'YAML'
@@ -77,7 +80,7 @@ YAML
         $this->assertSame($openapi->components->responses['Pet'], $refResponse);
     }
 
-    public function testResolveCyclicReferenceInDocument()
+    public function testResolveCyclicReferenceInDocument(): void
     {
         /** @var $openapi OpenApi */
         $openapi = Reader::readFromYaml(<<<'YAML'
@@ -124,7 +127,7 @@ YAML
         $this->assertInstanceOf(Reference::class, $response->content['application/json']->schema);
         $this->assertInstanceOf(Reference::class, $response->content['application/json']->examples['frog']);
 
-//        $this->expectException(\cebe\openapi\exceptions\UnresolvableReferenceException::class);
+        //        $this->expectException(\cebe\openapi\exceptions\UnresolvableReferenceException::class);
         $openapi->resolveReferences(new \cebe\openapi\ReferenceContext($openapi, 'file:///tmp/openapi.yaml'));
 
         $this->assertInstanceOf(Schema::class, $petItems = $openapi->components->schemas['Pet']->properties['id']->items);
@@ -145,7 +148,7 @@ YAML
         }
     }
 
-    public function testResolveFile()
+    public function testResolveFile(): void
     {
         $file = __DIR__ . '/data/reference/base.yaml';
         $yaml = str_replace('##ABSOLUTEPATH##', $this->createFileUri(dirname($file)), file_get_contents($file));
@@ -175,7 +178,7 @@ YAML
         $this->assertEquals(1, $openapi->components->schemas['Dog']->properties['food']->properties['id']->example);
     }
 
-    public function testResolveFileInSubdir()
+    public function testResolveFileInSubdir(): void
     {
         $file = __DIR__ . '/data/reference/subdir.yaml';
         /** @var $openapi OpenApi */
@@ -220,7 +223,7 @@ YAML
         $this->assertEquals('integer', $parameter->schema->type);
     }
 
-    public function testResolveFileInSubdirWithMultipleRelativePaths()
+    public function testResolveFileInSubdirWithMultipleRelativePaths(): void
     {
         $file = __DIR__ . '/data/reference/InlineRelativeResolve/sub/dir/Pathfile.json';
         /** @var $openapi OpenApi */
@@ -231,7 +234,7 @@ YAML
         $this->assertTrue($result);
     }
 
-    public function testResolveFileHttp()
+    public function testResolveFileHttp(): void
     {
         $file = 'https://raw.githubusercontent.com/cebe/php-openapi/290389bbd337cf4d70ecedfd3a3d886715e19552/tests/spec/data/reference/base.yaml';
         /** @var $openapi OpenApi */
@@ -252,7 +255,7 @@ YAML
         $this->assertArrayHasKey('name', $openapi->components->schemas['Dog']->properties);
     }
 
-    public function testResolvePaths()
+    public function testResolvePaths(): void
     {
         /** @var $openapi OpenApi */
         $openapi = Reader::readFromJsonFile(__DIR__ . '/data/reference/playlist.json', OpenApi::class, false);
@@ -275,7 +278,7 @@ YAML
         $this->assertSame($playlistsBody, $newPlaylistBody);
     }
 
-    public function testReferenceToArray()
+    public function testReferenceToArray(): void
     {
         $schema = <<<'YAML'
 openapi: 3.0.0
@@ -326,7 +329,7 @@ YAML;
      * References to references fail as "cyclic reference"
      * @see https://github.com/cebe/php-openapi/issues/57
      */
-    public function testTransitiveReference()
+    public function testTransitiveReference(): void
     {
         $schema = <<<'YAML'
 openapi: 3.0.2
@@ -367,7 +370,7 @@ YAML;
      * References to references fail as "cyclic reference"
      * @see https://github.com/cebe/php-openapi/issues/54
      */
-    public function testTransitiveReferenceToFile()
+    public function testTransitiveReferenceToFile(): void
     {
         $schema = <<<'YAML'
 openapi: 3.0.2
@@ -401,7 +404,7 @@ YAML;
         $this->assertEquals('object', $openapi->paths['/dog']->get->responses[200]->content['application/json']->schema->type);
     }
 
-    public function testTransitiveReferenceCyclic()
+    public function testTransitiveReferenceCyclic(): void
     {
         $schema = <<<'YAML'
 openapi: 3.0.2
@@ -434,7 +437,7 @@ YAML;
         $openapi->resolveReferences(new \cebe\openapi\ReferenceContext($openapi, 'file:///tmp/openapi.yaml'));
     }
 
-    public function testTransitiveReferenceOverTwoFiles()
+    public function testTransitiveReferenceOverTwoFiles(): void
     {
         $openapi = Reader::readFromYamlFile(__DIR__ . '/data/reference/structure.yaml', OpenApi::class, \cebe\openapi\ReferenceContext::RESOLVE_MODE_INLINE);
 
@@ -460,16 +463,10 @@ paths:
 YAML;
         // remove line endings to make string equal on windows
         $expected = preg_replace('~\R~', "\n", $expected);
-        if (PHP_VERSION_ID < 70200) {
-            // PHP <7.2 returns numeric properties in yaml maps as integer, since 7.2 these are string
-            // probably related to https://www.php.net/manual/de/migration72.incompatible.php#migration72.incompatible.object-array-casts
-            $this->assertEquals(str_replace("'200':", "200:", $expected), $yaml, $yaml);
-        } else {
-            $this->assertEquals($expected, $yaml, $yaml);
-        }
+        $this->assertEquals($expected, $yaml, $yaml);
     }
 
-    public function testReferencedCommonParamsInReferencedPath()
+    public function testReferencedCommonParamsInReferencedPath(): void
     {
         $openapi = Reader::readFromYamlFile(__DIR__ . '/data/reference/ReferencedCommonParamsInReferencedPath.yml', OpenApi::class, \cebe\openapi\ReferenceContext::RESOLVE_MODE_INLINE);
         $yaml = \cebe\openapi\Writer::writeToYaml($openapi);
@@ -525,16 +522,10 @@ paths:
 YAML;
         // remove line endings to make string equal on windows
         $expected = preg_replace('~\R~', "\n", $expected);
-        if (PHP_VERSION_ID < 70200) {
-            // PHP <7.2 returns numeric properties in yaml maps as integer, since 7.2 these are string
-            // probably related to https://www.php.net/manual/de/migration72.incompatible.php#migration72.incompatible.object-array-casts
-            $this->assertEquals(str_replace("'200':", "200:", $expected), $yaml, $yaml);
-        } else {
-            $this->assertEquals($expected, $yaml, $yaml);
-        }
+        $this->assertEquals($expected, $yaml, $yaml);
     }
 
-    public function testResolveRelativePathInline()
+    public function testResolveRelativePathInline(): void
     {
         $openapi = Reader::readFromYamlFile(__DIR__ . '/data/reference/openapi_models.yaml', OpenApi::class, \cebe\openapi\ReferenceContext::RESOLVE_MODE_INLINE);
 
@@ -578,16 +569,10 @@ components:
 YAML;
         // remove line endings to make string equal on windows
         $expected = preg_replace('~\R~', "\n", $expected);
-        if (PHP_VERSION_ID < 70200) {
-            // PHP <7.2 returns numeric properties in yaml maps as integer, since 7.2 these are string
-            // probably related to https://www.php.net/manual/de/migration72.incompatible.php#migration72.incompatible.object-array-casts
-            $this->assertEquals(str_replace("'200':", "200:", $expected), $yaml, $yaml);
-        } else {
-            $this->assertEquals($expected, $yaml, $yaml);
-        }
+        $this->assertEquals($expected, $yaml, $yaml);
     }
 
-    public function testResolveRelativePathAll()
+    public function testResolveRelativePathAll(): void
     {
         $openapi = Reader::readFromYamlFile(__DIR__ . '/data/reference/openapi_models.yaml', OpenApi::class, \cebe\openapi\ReferenceContext::RESOLVE_MODE_ALL);
 
@@ -648,13 +633,7 @@ components:
 YAML;
         // remove line endings to make string equal on windows
         $expected = preg_replace('~\R~', "\n", $expected);
-        if (PHP_VERSION_ID < 70200) {
-            // PHP <7.2 returns numeric properties in yaml maps as integer, since 7.2 these are string
-            // probably related to https://www.php.net/manual/de/migration72.incompatible.php#migration72.incompatible.object-array-casts
-            $this->assertEquals(str_replace("'200':", "200:", $expected), $yaml, $yaml);
-        } else {
-            $this->assertEquals($expected, $yaml, $yaml);
-        }
+        $this->assertEquals($expected, $yaml, $yaml);
     }
 
 }

@@ -1,14 +1,17 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Header;
 
-/**
- * @covers \cebe\openapi\spec\Header
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Header::class)]
 class HeaderTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $header Header */
         $header = Reader::readFromJson(<<<JSON
@@ -19,7 +22,7 @@ class HeaderTest extends \PHPUnit\Framework\TestCase
   }
 }
 JSON
-        , Header::class);
+            , Header::class);
 
         $result = $header->validate();
         $this->assertEquals([], $header->getErrors());

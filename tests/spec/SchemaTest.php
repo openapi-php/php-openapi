@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\ReferenceContext;
 use cebe\openapi\spec\Discriminator;
@@ -7,13 +12,11 @@ use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use cebe\openapi\spec\Type;
 
-/**
- * @covers \cebe\openapi\spec\Schema
- * @covers \cebe\openapi\spec\Discriminator
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Schema::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Discriminator::class)]
 class SchemaTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $schema Schema */
         $schema = Reader::readFromJson(<<<JSON
@@ -22,7 +25,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
   "format": "email"
 }
 JSON
-        , Schema::class);
+            , Schema::class);
 
         $result = $schema->validate();
         $this->assertEquals([], $schema->getErrors());
@@ -43,7 +46,7 @@ JSON
         $this->assertFalse($schema->deprecated);
     }
 
-    public function testNullable()
+    public function testNullable(): void
     {
         /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "string"}', Schema::class);
@@ -66,7 +69,7 @@ JSON
         $this->assertNull($schema->nullable);
     }
 
-    public function testMinMax()
+    public function testMinMax(): void
     {
         /** @var $schema Schema */
         $schema = Reader::readFromJson('{"type": "integer"}', Schema::class);
@@ -104,7 +107,7 @@ JSON
         $this->assertNull($schema->exclusiveMinimum);
     }
 
-    public function testReadObject()
+    public function testReadObject(): void
     {
         /** @var $schema Schema */
         $schema = Reader::readFromJson(<<<'JSON'
@@ -128,7 +131,7 @@ JSON
   }
 }
 JSON
-        , Schema::class);
+            , Schema::class);
 
         $result = $schema->validate();
         $this->assertEquals([], $schema->getErrors());
@@ -155,7 +158,7 @@ JSON
         $this->assertNull($schema->exclusiveMaximum);
     }
 
-    public function testDiscriminator()
+    public function testDiscriminator(): void
     {
         /** @var $schema Schema */
         $schema = Reader::readFromYaml(<<<'YAML'
@@ -202,7 +205,7 @@ YAML
         ], $schema->discriminator->mapping);
     }
 
-    public function testCreateionFromObjects()
+    public function testCreateionFromObjects(): void
     {
         $schema = new Schema([
             'allOf' => [
@@ -225,7 +228,7 @@ YAML
     }
 
 
-    public function badSchemaProvider()
+    public static function badSchemaProvider()
     {
         yield [['properties' => ['a' => 'foo']], 'Unable to instantiate cebe\openapi\spec\Schema Object with data \'foo\''];
         yield [['properties' => ['a' => 42]], 'Unable to instantiate cebe\openapi\spec\Schema Object with data \'42\''];
@@ -238,10 +241,8 @@ YAML
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    /**
-     * @dataProvider badSchemaProvider
-     */
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException)
+    #[\PHPUnit\Framework\Attributes\DataProvider('badSchemaProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
     {
         $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);
@@ -249,7 +250,7 @@ YAML
         new Schema($config);
     }
 
-    public function testAllOf()
+    public function testAllOf(): void
     {
         $json = <<<'JSON'
 {
@@ -300,7 +301,7 @@ JSON;
     /**
      * Ensure Schema properties are accessable and have default values.
      */
-    public function testSchemaProperties()
+    public function testSchemaProperties(): void
     {
         $schema = new Schema([]);
         $validProperties = [
@@ -349,7 +350,7 @@ JSON;
         }
     }
 
-    public function testRefAdditionalProperties()
+    public function testRefAdditionalProperties(): void
     {
         $json = <<<'JSON'
 {
@@ -390,7 +391,7 @@ JSON;
      * Ensure that a property named "$ref" is not interpreted as a reference.
      * @link https://github.com/OAI/OpenAPI-Specification/issues/2173
      */
-    public function testPropertyNameRef()
+    public function testPropertyNameRef(): void
     {
         $json = <<<'JSON'
 {
@@ -421,7 +422,7 @@ JSON;
         $this->assertEquals('string', $person->properties['$ref']->type);
     }
 
-    public function testArrayKeyIsPerseveredInPropertiesThatAreArrays()
+    public function testArrayKeyIsPerseveredInPropertiesThatAreArrays(): void
     {
         $json = <<<'JSON'
 {

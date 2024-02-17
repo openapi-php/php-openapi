@@ -22,8 +22,6 @@ interface DocumentContextInterface
      *
      * Context information contains a reference to the base object where it is contained in
      * as well as a JSON pointer to its position.
-     * @param SpecObjectInterface $baseDocument
-     * @param JsonPointer $jsonPointer
      */
     public function setDocumentContext(SpecObjectInterface $baseDocument, JsonPointer $jsonPointer);
 

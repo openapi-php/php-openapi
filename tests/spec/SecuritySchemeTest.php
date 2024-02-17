@@ -1,27 +1,30 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OAuthFlow;
 use cebe\openapi\spec\OAuthFlows;
 use cebe\openapi\spec\SecurityRequirement;
 use cebe\openapi\spec\SecurityScheme;
 
-/**
- * @covers \cebe\openapi\spec\SecurityScheme
- * @covers \cebe\openapi\spec\OAuthFlows
- * @covers \cebe\openapi\spec\OAuthFlow
- * @covers \cebe\openapi\spec\SecurityRequirement
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\SecurityScheme::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\OAuthFlows::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\OAuthFlow::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\SecurityRequirement::class)]
 class SecuritySchemeTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $securityScheme SecurityScheme */
         $securityScheme = Reader::readFromYaml(<<<YAML
 type: http
 scheme: basic
 YAML
-        , SecurityScheme::class);
+            , SecurityScheme::class);
 
         $result = $securityScheme->validate();
         $this->assertEquals([], $securityScheme->getErrors());
@@ -34,7 +37,7 @@ YAML
         $securityScheme = Reader::readFromYaml(<<<YAML
 scheme: basic
 YAML
-        , SecurityScheme::class);
+            , SecurityScheme::class);
 
         $result = $securityScheme->validate();
         $this->assertEquals(['SecurityScheme is missing required property: type'], $securityScheme->getErrors());
@@ -90,7 +93,7 @@ YAML
         $this->assertFalse($result);
     }
 
-    public function testOAuth2()
+    public function testOAuth2(): void
     {
         /** @var $securityScheme SecurityScheme */
         $securityScheme = Reader::readFromYaml(<<<YAML
@@ -142,7 +145,7 @@ YAML
         ], $securityScheme->flows->implicit->scopes);
     }
 
-    public function testSecurityRequirement()
+    public function testSecurityRequirement(): void
     {
         /** @var $securityRequirement SecurityRequirement */
         $securityRequirement = Reader::readFromYaml(<<<YAML
@@ -171,9 +174,10 @@ YAML
         $this->assertSame(['write:pets', 'read:pets'], $securityRequirement->petstore_auth);
     }
 
-    public function testDefaultSecurity()
+    public function testDefaultSecurity(): void
     {
-        $openapi = Reader::readFromYaml(<<<YAML
+        $openapi = Reader::readFromYaml(
+            <<<YAML
 paths:
   /path/one:
     post:

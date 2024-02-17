@@ -1,14 +1,17 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Xml;
 
-/**
- * @covers \cebe\openapi\spec\Xml
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Xml::class)]
 class XmlTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $xml Xml */
         $xml = Reader::readFromYaml(<<<YAML
@@ -18,7 +21,7 @@ namespace: http://example.com/schema/sample
 prefix: sample
 wrapped: false
 YAML
-        , Xml::class);
+            , Xml::class);
 
         $result = $xml->validate();
         $this->assertEquals([], $xml->getErrors());
@@ -34,7 +37,7 @@ YAML
         $xml = Reader::readFromYaml(<<<YAML
 name: animal
 YAML
-        , Xml::class);
+            , Xml::class);
 
         $result = $xml->validate();
         $this->assertEquals([], $xml->getErrors());

@@ -1,17 +1,20 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\RequestBody;
 use cebe\openapi\spec\Encoding;
 
-/**
- * @covers \cebe\openapi\spec\RequestBody
- * @covers \cebe\openapi\spec\Encoding
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\RequestBody::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Encoding::class)]
 class RequestBodyTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $requestBody RequestBody */
         $requestBody = Reader::readFromJson(<<<'JSON'
@@ -26,7 +29,7 @@ class RequestBodyTest extends \PHPUnit\Framework\TestCase
   }
 }
 JSON
-        , RequestBody::class);
+            , RequestBody::class);
 
         $result = $requestBody->validate();
         $this->assertEquals([], $requestBody->getErrors());
@@ -45,7 +48,7 @@ JSON
   "description": "user to add to the system"
 }
 JSON
-        , RequestBody::class);
+            , RequestBody::class);
 
         $result = $requestBody->validate();
         $this->assertEquals([
@@ -54,7 +57,7 @@ JSON
         $this->assertFalse($result);
     }
 
-    public function testEncoding()
+    public function testEncoding(): void
     {
         /** @var $requestBody RequestBody */
         $requestBody = Reader::readFromYaml(<<<'YAML'

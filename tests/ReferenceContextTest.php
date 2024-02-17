@@ -1,12 +1,16 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
 
 use cebe\openapi\ReferenceContext;
 use cebe\openapi\spec\OpenApi;
 
 class ReferenceContextTest extends \PHPUnit\Framework\TestCase
 {
-    public function resolveUriProvider()
+    public static function resolveUriProvider()
     {
         $data = [
             [
@@ -115,16 +119,14 @@ class ReferenceContextTest extends \PHPUnit\Framework\TestCase
         return $data;
     }
 
-    /**
-     * @dataProvider resolveUriProvider
-     */
-    public function testResolveUri($baseUri, $referencedUri, $expected)
+    #[\PHPUnit\Framework\Attributes\DataProvider('resolveUriProvider')]
+    public function testResolveUri($baseUri, $referencedUri, $expected): void
     {
         $context = new ReferenceContext(new OpenApi([]), $baseUri);
         $this->assertEquals($expected, $context->resolveRelativeUri($referencedUri));
     }
 
-    public function normalizeUriProvider()
+    public static function normalizeUriProvider()
     {
         $data = [
             [
@@ -192,10 +194,8 @@ class ReferenceContextTest extends \PHPUnit\Framework\TestCase
         return $data;
     }
 
-    /**
-     * @dataProvider normalizeUriProvider
-     */
-    public function testNormalizeUri($uri, $expected)
+    #[\PHPUnit\Framework\Attributes\DataProvider('normalizeUriProvider')]
+    public function testNormalizeUri($uri, $expected): void
     {
         $context = new ReferenceContext(null, $uri);
         $this->assertEquals($expected, $context->getUri());

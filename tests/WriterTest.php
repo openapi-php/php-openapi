@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\spec\SecurityRequirement;
 
 class WriterTest extends \PHPUnit\Framework\TestCase
@@ -16,13 +21,17 @@ class WriterTest extends \PHPUnit\Framework\TestCase
         ], $merge));
     }
 
-    public function testWriteJson()
+    public function testWriteJson(): void
     {
         $openapi = $this->createOpenAPI();
 
         $json = \cebe\openapi\Writer::writeToJson($openapi);
 
-        $this->assertEquals(preg_replace('~\R~', "\n", <<<JSON
+        $this->assertEquals(
+            preg_replace(
+                '~\R~',
+                "\n",
+                <<<JSON
 {
     "openapi": "3.0.0",
     "info": {
@@ -32,12 +41,12 @@ class WriterTest extends \PHPUnit\Framework\TestCase
     "paths": {}
 }
 JSON
-),
+            ),
             $json
         );
     }
 
-    public function testWriteJsonMofify()
+    public function testWriteJsonMofify(): void
     {
         $openapi = $this->createOpenAPI();
 
@@ -47,7 +56,11 @@ JSON
 
         $json = \cebe\openapi\Writer::writeToJson($openapi);
 
-        $this->assertEquals(preg_replace('~\R~', "\n", <<<JSON
+        $this->assertEquals(
+            preg_replace(
+                '~\R~',
+                "\n",
+                <<<JSON
 {
     "openapi": "3.0.0",
     "info": {
@@ -61,19 +74,23 @@ JSON
     }
 }
 JSON
-),
+            ),
             $json
         );
     }
 
-    public function testWriteYaml()
+    public function testWriteYaml(): void
     {
         $openapi = $this->createOpenAPI();
 
         $yaml = \cebe\openapi\Writer::writeToYaml($openapi);
 
 
-        $this->assertEquals(preg_replace('~\R~', "\n", <<<YAML
+        $this->assertEquals(
+            preg_replace(
+                '~\R~',
+                "\n",
+                <<<YAML
 openapi: 3.0.0
 info:
   title: 'Test API'
@@ -81,12 +98,12 @@ info:
 paths: {  }
 
 YAML
-        ),
+            ),
             $yaml
         );
     }
 
-    public function testWriteEmptySecurityJson()
+    public function testWriteEmptySecurityJson(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [],
@@ -94,7 +111,11 @@ YAML
 
         $json = \cebe\openapi\Writer::writeToJson($openapi);
 
-        $this->assertEquals(preg_replace('~\R~', "\n", <<<JSON
+        $this->assertEquals(
+            preg_replace(
+                '~\R~',
+                "\n",
+                <<<JSON
 {
     "openapi": "3.0.0",
     "info": {
@@ -105,13 +126,13 @@ YAML
     "security": []
 }
 JSON
-        ),
+            ),
             $json
         );
     }
 
 
-    public function testWriteEmptySecurityYaml()
+    public function testWriteEmptySecurityYaml(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [],
@@ -120,7 +141,11 @@ JSON
         $yaml = \cebe\openapi\Writer::writeToYaml($openapi);
 
 
-        $this->assertEquals(preg_replace('~\R~', "\n", <<<YAML
+        $this->assertEquals(
+            preg_replace(
+                '~\R~',
+                "\n",
+                <<<YAML
 openapi: 3.0.0
 info:
   title: 'Test API'
@@ -129,12 +154,12 @@ paths: {  }
 security: []
 
 YAML
-        ),
+            ),
             $yaml
         );
     }
 
-    public function testWriteEmptySecurityPartJson()
+    public function testWriteEmptySecurityPartJson(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [new SecurityRequirement(['Bearer' => []])],
@@ -142,7 +167,11 @@ YAML
 
         $json = \cebe\openapi\Writer::writeToJson($openapi);
 
-        $this->assertEquals(preg_replace('~\R~', "\n", <<<JSON
+        $this->assertEquals(
+            preg_replace(
+                '~\R~',
+                "\n",
+                <<<JSON
 {
     "openapi": "3.0.0",
     "info": {
@@ -157,13 +186,13 @@ YAML
     ]
 }
 JSON
-        ),
+            ),
             $json
         );
     }
 
 
-    public function testWriteEmptySecurityPartYaml()
+    public function testWriteEmptySecurityPartYaml(): void
     {
         $openapi = $this->createOpenAPI([
             'security' => [new SecurityRequirement(['Bearer' => []])],
@@ -172,7 +201,11 @@ JSON
         $yaml = \cebe\openapi\Writer::writeToYaml($openapi);
 
 
-        $this->assertEquals(preg_replace('~\R~', "\n", <<<YAML
+        $this->assertEquals(
+            preg_replace(
+                '~\R~',
+                "\n",
+                <<<YAML
 openapi: 3.0.0
 info:
   title: 'Test API'
@@ -183,7 +216,7 @@ security:
     Bearer: []
 
 YAML
-        ),
+            ),
             $yaml
         );
     }

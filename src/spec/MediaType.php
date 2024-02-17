@@ -63,7 +63,7 @@ class MediaType extends SpecBaseObject
                 } else {
                     $givenType = gettype($encodingData);
                     if ($givenType === 'object') {
-                        $givenType = get_class($encodingData);
+                        $givenType = $encodingData::class;
                     }
                     throw new TypeErrorException(sprintf('Encoding MUST be either array or Encoding object, "%s" given', $givenType));
                 }

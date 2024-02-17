@@ -244,8 +244,9 @@ $errors = $openapi->getErrors();
 
 You may use the docker environment for local development:
 
-    docker-compose build
-    make IN_DOCKER=1 install
-    make IN_DOCKER=1 test
-    ...
-
+```shell
+# Build once the container
+docker build -t php-openapi .
+# Run commands in the container 
+docker run -it -v `pwd`:/var/www -w /var/www php-openapi sh
+```

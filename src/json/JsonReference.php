@@ -69,8 +69,8 @@ final class JsonReference implements JsonSerializable
     public static function createFromReference(string $referenceURI): JsonReference
     {
         $jsonReference = new JsonReference();
-        if (strpos($referenceURI, '#') !== false) {
-            list($uri, $fragment) = explode('#', $referenceURI, 2);
+        if (str_contains($referenceURI, '#')) {
+            [$uri, $fragment] = explode('#', $referenceURI, 2);
             $jsonReference->_uri = $uri;
             $jsonReference->_pointer = new JsonPointer(rawurldecode($fragment));
         } else {

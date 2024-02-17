@@ -1,14 +1,17 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Components;
 
-/**
- * @covers \cebe\openapi\spec\Components
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Components::class)]
 class ComponentsTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $components Components */
         $components = Reader::readFromYaml(<<<'YAML'
@@ -115,7 +118,7 @@ YAML
         $this->assertCount(0, $components->callbacks); // TODO
     }
 
-    public function assertAllInstanceOf($className, $array)
+    public function assertAllInstanceOf($className, $array): void
     {
         foreach($array as $k => $v) {
             $this->assertInstanceOf($className, $v, "Asserting that item with key '$k' is instance of $className");

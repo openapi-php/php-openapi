@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Operation;
 use cebe\openapi\spec\PathItem;
@@ -8,13 +13,11 @@ use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Response;
 use cebe\openapi\spec\Responses;
 
-/**
- * @covers \cebe\openapi\spec\Paths
- * @covers \cebe\openapi\spec\PathItem
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Paths::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\PathItem::class)]
 class PathTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $paths Paths */
         $paths = Reader::readFromJson(<<<'JSON'
@@ -41,7 +44,7 @@ class PathTest extends \PHPUnit\Framework\TestCase
   }
 }
 JSON
-        , Paths::class);
+            , Paths::class);
 
         $result = $paths->validate();
         $this->assertEquals([], $paths->getErrors());
@@ -66,7 +69,7 @@ JSON
         }
     }
 
-    public function testCreationFromObjects()
+    public function testCreationFromObjects(): void
     {
         $paths = new Paths([
             '/pets' => new PathItem([
@@ -88,7 +91,7 @@ JSON
         $this->assertSame('The pets list is gone 🙀', $paths->getPath('/pets')->get->responses->getResponse(404)->description);
     }
 
-    public function badPathsConfigProvider()
+    public static function badPathsConfigProvider()
     {
         yield [['/pets' => 'foo'], 'Path MUST be either array or PathItem object, "string" given'];
         yield [['/pets' => 42], 'Path MUST be either array or PathItem object, "integer" given'];
@@ -97,10 +100,8 @@ JSON
         // The last one can be supported in future, but now SpecBaseObjects::__construct() requires array explicitly
     }
 
-    /**
-     * @dataProvider badPathsConfigProvider
-     */
-    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException)
+    #[\PHPUnit\Framework\Attributes\DataProvider('badPathsConfigProvider')]
+    public function testPathsCanNotBeCreatedFromBullshit($config, $expectedException): void
     {
         $this->expectException(\cebe\openapi\exceptions\TypeErrorException::class);
         $this->expectExceptionMessage($expectedException);
@@ -108,7 +109,7 @@ JSON
         new Paths($config);
     }
 
-    public function testInvalidPath()
+    public function testInvalidPath(): void
     {
         /** @var $paths Paths */
         $paths = Reader::readFromJson(<<<'JSON'
@@ -134,7 +135,7 @@ JSON
         $this->assertFalse($result);
     }
 
-    public function testPathItemReference()
+    public function testPathItemReference(): void
     {
         $file = __DIR__ . '/data/paths/openapi.yaml';
         /** @var $openapi \cebe\openapi\spec\OpenApi */

@@ -1,12 +1,9 @@
 <?php
 
-if (PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION == 4) {
-    // ignore deprecation warning in PHP 7.4
-    // https://github.com/symfony/symfony/issues/34807
-    error_reporting(-1 & ~E_DEPRECATED);
-} else {
-    error_reporting(-1);
-}
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
 
 require __DIR__ . '/../vendor/autoload.php';
 

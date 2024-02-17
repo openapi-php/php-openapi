@@ -1,16 +1,19 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Operation;
 use cebe\openapi\spec\ExternalDocumentation;
 
-/**
- * @covers \cebe\openapi\spec\Operation
- * @covers \cebe\openapi\spec\ExternalDocumentation
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Operation::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\ExternalDocumentation::class)]
 class OperationTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $operation Operation */
         $operation = Reader::readFromYaml(<<<'YAML'
@@ -57,7 +60,7 @@ externalDocs:
   description: Find more info here
   url: https://example.com
 YAML
-        , Operation::class);
+            , Operation::class);
 
         $result = $operation->validate();
         $this->assertEquals([], $operation->getErrors());

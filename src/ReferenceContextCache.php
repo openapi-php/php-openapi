@@ -15,7 +15,7 @@ class ReferenceContextCache
     private $_cache = [];
 
 
-    public function set($ref, $type, $data)
+    public function set($ref, $type, $data): void
     {
         $this->_cache[$ref][$type ?? ''] = $data;
 

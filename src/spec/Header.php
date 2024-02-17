@@ -21,7 +21,7 @@ use cebe\openapi\SpecBaseObject;
  */
 class Header extends Parameter
 {
-    public function performValidation()
+    public function performValidation(): void
     {
         if (!empty($this->name)) {
             $this->addError("'name' must not be specified in Header Object.");

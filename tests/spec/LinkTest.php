@@ -1,14 +1,17 @@
 <?php
 
+/**
+ * @copyright Copyright (c) 2018 Carsten Brandt <mail@cebe.cc> and contributors
+ * @license https://github.com/cebe/php-openapi/blob/master/LICENSE
+ */
+
 use cebe\openapi\Reader;
 use cebe\openapi\spec\Link;
 
-/**
- * @covers \cebe\openapi\spec\Link
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\cebe\openapi\spec\Link::class)]
 class LinkTest extends \PHPUnit\Framework\TestCase
 {
-    public function testRead()
+    public function testRead(): void
     {
         /** @var $link Link */
         $link = Reader::readFromJson(<<<JSON
@@ -19,7 +22,7 @@ class LinkTest extends \PHPUnit\Framework\TestCase
     }
 }
 JSON
-        , Link::class);
+            , Link::class);
 
         $result = $link->validate();
         $this->assertEquals([], $link->getErrors());
@@ -32,7 +35,7 @@ JSON
         $this->assertEquals(null, $link->server);
     }
 
-    public function testValidateBothOperationIdAndOperationRef()
+    public function testValidateBothOperationIdAndOperationRef(): void
     {
         /** @var $link Link */
         $link = Reader::readFromJson(<<<JSON
@@ -41,7 +44,7 @@ JSON
     "operationRef": "getUserAddressRef"
 }
 JSON
-                , Link::class);
+            , Link::class);
 
         $result = $link->validate();
         $this->assertEquals([

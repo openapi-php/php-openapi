@@ -23,11 +23,11 @@ class ReferenceContext
      * The result will be a single API description file with references
      * inside of the file structure.
      */
-    const RESOLVE_MODE_INLINE = 'inline';
+    public const RESOLVE_MODE_INLINE = 'inline';
     /**
      * resolve all references, except recursive ones.
      */
-    const RESOLVE_MODE_ALL = 'all';
+    public const RESOLVE_MODE_ALL = 'all';
 
     /**
      * @var bool whether to throw UnresolvableReferenceException in case a reference can not
@@ -38,10 +38,6 @@ class ReferenceContext
      * @var string
      */
     public $mode = self::RESOLVE_MODE_ALL;
-    /**
-     * @var SpecObjectInterface
-     */
-    private $_baseSpec;
     /**
      * @var string
      */
@@ -54,18 +50,17 @@ class ReferenceContext
 
     /**
      * ReferenceContext constructor.
-     * @param SpecObjectInterface $base the base object of the spec.
+     * @param SpecObjectInterface $_baseSpec the base object of the spec.
      * @param string $uri the URI to the base object.
      * @param ReferenceContextCache $cache cache instance for storing referenced file data.
      * @throws UnresolvableReferenceException in case an invalid or non-absolute URI is provided.
      */
-    public function __construct(?SpecObjectInterface $base, string $uri, $cache = null)
+    public function __construct(private readonly ?SpecObjectInterface $_baseSpec, string $uri, $cache = null)
     {
-        $this->_baseSpec = $base;
         $this->_uri = $this->normalizeUri($uri);
         $this->_cache = $cache ?? new ReferenceContextCache();
-        if ($cache === null && $base !== null) {
-            $this->_cache->set($this->_uri, null, $base);
+        if ($cache === null && $this->_baseSpec !== null) {
+            $this->_cache->set($this->_uri, null, $this->_baseSpec);
         }
     }
 
@@ -79,18 +74,18 @@ class ReferenceContext
      */
     private function normalizeUri($uri)
     {
-        if (strpos($uri, '://') !== false) {
-            $parts = parse_url($uri);
+        if (str_contains((string) $uri, '://')) {
+            $parts = parse_url((string) $uri);
             if (isset($parts['path'])) {
                 $parts['path'] = $this->reduceDots($parts['path']);
             }
             return $this->buildUri($parts);
         }
-        if (strncmp($uri, '/', 1) === 0) {
+        if (str_starts_with((string) $uri, '/')) {
             $uri = $this->reduceDots($uri);
             return "file://$uri";
         }
-        if (stripos(PHP_OS, 'WIN') === 0 && strncmp(substr($uri, 1), ':\\', 2) === 0) {
+        if (stripos(PHP_OS, 'WIN') === 0 && str_starts_with(substr((string) $uri, 1), ':\\')) {
             $uri = $this->reduceDots($uri);
             return "file://" . strtr($uri, [' ' => '%20', '\\' => '/']);
         }
@@ -113,7 +108,7 @@ class ReferenceContext
 
     private function reduceDots($path)
     {
-        $parts = explode('/', ltrim($path, '/'));
+        $parts = explode('/', ltrim((string) $path, '/'));
         $c = count($parts);
         $parentOffset = 1;
         for ($i = 0; $i < $c; $i++) {
@@ -161,7 +156,6 @@ class ReferenceContext
 
     /**
      * Resolve a relative URI to an absolute URI in the current context.
-     * @param string $uri
      * @throws UnresolvableReferenceException
      * @return string
      */
@@ -177,7 +171,7 @@ class ReferenceContext
         }
 
         // convert absolute path on windows to a file:// URI. This is probably incomplete but should work with the majority of paths.
-        if (stripos(PHP_OS, 'WIN') === 0 && strncmp(substr($uri, 1), ':\\', 2) === 0) {
+        if (stripos(PHP_OS, 'WIN') === 0 && str_starts_with(substr($uri, 1), ':\\')) {
             // convert absolute path on windows to a file:// URI. This is probably incomplete but should work with the majority of paths.
             $absoluteUri = "file:///" . strtr($uri, [' ' => '%20', '\\' => '/']);
             return $absoluteUri
@@ -221,7 +215,7 @@ class ReferenceContext
             throw $e;
         }
         // TODO lazy content detection, should be improved
-        if (strpos(ltrim($content), '{') === 0) {
+        if (str_starts_with(ltrim($content), '{')) {
             $parsedContent = json_decode($content, true);
         } else {
             $parsedContent = Yaml::parse($content);
@@ -237,7 +231,6 @@ class ReferenceContext
      * data structures end up being the same object instance in PHP.
      *
      * @param string $uri
-     * @param JsonPointer $pointer
      * @param array $data
      * @param string|null $toType
      * @return SpecObjectInterface|array|null
