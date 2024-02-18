@@ -16,7 +16,7 @@ use function preg_match;
  * @property string $openapi
  * @property Info $info
  * @property array<Server> $servers
- * @property Paths|array<PathItem> $paths
+ * @property Paths $paths
  * @property Components|null $components
  * @property array<PathItem>|null $webhooks
  * @property array<SecurityRequirement> $security
