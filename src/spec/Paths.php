@@ -34,12 +34,12 @@ use function str_starts_with;
  *
  * @link https://github.com/OAI/OpenAPI-Specification/blob/3.0.2/versions/3.0.2.md#pathsObject
  *
- * @implements ArrayAccess<string, PathItem|null>
- * @implements IteratorAggregate<string, PathItem|null>
+ * @implements ArrayAccess<string, PathItem>
+ * @implements IteratorAggregate<string, PathItem>
  */
 class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAccess, Countable, IteratorAggregate
 {
-    /** @var array<string, PathItem|null> */
+    /** @var array<string, PathItem> */
     private array $_paths = [];
     /** @var list<string> */
     private array $_errors                          = [];
@@ -57,11 +57,11 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
     {
         foreach ($data as $path => $object) {
             if ($object === null) {
-                $this->_paths[$path] = null;
+                $this->removePath($path);
             } elseif (is_array($object)) {
-                $this->_paths[$path] = new PathItem($object);
+                $this->addPath($path, new PathItem($object));
             } elseif ($object instanceof PathItem) {
-                $this->_paths[$path] = $object;
+                $this->addPath($path, $object);
             } else {
                 $givenType = gettype($object);
                 if (is_object($object)) {
@@ -81,7 +81,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
     {
         $data = [];
         foreach ($this->_paths as $path => $pathItem) {
-            $data[$path] = $pathItem?->getSerializableData();
+            $data[$path] = $pathItem->getSerializableData();
         }
 
         return (object) $data;
@@ -115,10 +115,14 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
     /** @param string $name path name */
     public function removePath(string $name): void
     {
+        if (! $this->hasPath($name)) {
+            return;
+        }
+
         unset($this->_paths[$name]);
     }
 
-    /** @return array<string, PathItem|null> */
+    /** @return array<string, PathItem> */
     public function getPaths(): array
     {
         return $this->_paths;
@@ -136,10 +140,6 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
         $valid         = true;
         $this->_errors = [];
         foreach ($this->_paths as $key => $path) {
-            if ($path === null) {
-                continue;
-            }
-
             if (! $path->validate()) {
                 $valid = false;
             }
@@ -169,10 +169,6 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
         }
 
         foreach ($this->_paths as $path) {
-            if ($path === null) {
-                continue;
-            }
-
             $errors[] = $path->getErrors();
         }
 
@@ -267,7 +263,7 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
      *
      * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
      *
-     * @return Traversable<PathItem|null> An instance of an object implementing <b>Iterator</b> or <b>Traversable</b>
+     * @return Traversable<PathItem> An instance of an object implementing <b>Iterator</b> or <b>Traversable</b>
      */
     public function getIterator(): Traversable
     {
@@ -282,10 +278,6 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
     public function resolveReferences(ReferenceContext|null $context = null): void
     {
         foreach ($this->_paths as $path) {
-            if ($path === null) {
-                continue;
-            }
-
             $path->resolveReferences($context);
         }
     }
@@ -296,10 +288,6 @@ class Paths implements SpecObjectInterface, DocumentContextInterface, ArrayAcces
     public function setReferenceContext(ReferenceContext $context): void
     {
         foreach ($this->_paths as $path) {
-            if ($path === null) {
-                continue;
-            }
-
             $path->setReferenceContext($context);
         }
     }
