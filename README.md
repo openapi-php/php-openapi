@@ -9,8 +9,9 @@ Supported OpenAPI versions:
 - 3.0.x
 - 3.1.x
 
-[![Latest Stable Version](https://poser.pugx.org/openapi-php/php-openapi/v/stable)](https://packagist.org/packages/openapi-php/php-openapi)
-[![Total Downloads](https://poser.pugx.org/openapi-php/php-openapi/downloads)](https://packagist.org/packages/openapi-php/php-openapi)
+[![Latest Stable Version](http://poser.pugx.org/phpunit/phpunit/v)](https://packagist.org/packages/phpunit/phpunit)
+[![Total Downloads](http://poser.pugx.org/phpunit/phpunit/downloads)](https://packagist.org/packages/phpunit/phpunit)
+[![PHP Version Require](http://poser.pugx.org/phpunit/phpunit/require/php)](https://packagist.org/packages/phpunit/phpunit)
 [![Build Status](https://github.com/openapi-php/php-openapi/workflows/CI/badge.svg)](https://github.com/openapi-php/php-openapi/actions)
 
 
