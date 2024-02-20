@@ -6,10 +6,13 @@ namespace openapiphp\openapi\spec;
 
 use openapiphp\openapi\exceptions\UnresolvableReferenceException;
 use openapiphp\openapi\json\JsonPointer;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\ReferenceContext;
+use openapiphp\openapi\ReferenceTarget;
 use openapiphp\openapi\SpecBaseObject;
 use openapiphp\openapi\SpecObjectInterface;
 
+use function array_filter;
 use function array_keys;
 use function is_array;
 use function sprintf;
@@ -40,17 +43,21 @@ final class PathItem extends SpecBaseObject
     private Reference|null $_ref = null;
 
     /** @inheritDoc */
-    public function __construct(array $data)
+    public function __construct(array $data, OpenApiVersion|null $openApiVersion = null)
     {
         if (isset($data['$ref'])) {
             // Allows for an external definition of this path item.
             // $ref in a Path Item Object is not a Reference.
             // https://github.com/OAI/OpenAPI-Specification/issues/1038
-            $this->_ref = new Reference(['$ref' => $data['$ref']], self::class);
+            $this->_ref = new Reference(array_filter([
+                '$ref' => $data['$ref'],
+                'summary' => $data['summary'] ?? null,
+                'description' => $data['description'] ?? null,
+            ]), $openApiVersion, new ReferenceTarget($this));
             unset($data['$ref']);
         }
 
-        parent::__construct($data);
+        parent::__construct($data, $openApiVersion);
     }
 
     /**
@@ -193,7 +200,7 @@ final class PathItem extends SpecBaseObject
     }
 
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'delete' => Operation::class,

@@ -11,18 +11,22 @@ use openapiphp\openapi\json\InvalidJsonPointerSyntaxException;
 use openapiphp\openapi\json\JsonPointer;
 use openapiphp\openapi\json\JsonReference;
 use openapiphp\openapi\json\NonexistentJsonPointerReferenceException;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\ReferenceContext;
+use openapiphp\openapi\ReferenceTarget;
+use openapiphp\openapi\SpecBaseObject;
 use openapiphp\openapi\SpecObjectInterface;
 use Throwable;
 
+use function array_filter;
 use function array_map;
+use function assert;
 use function count;
 use function dirname;
 use function explode;
 use function implode;
 use function is_array;
 use function is_string;
-use function is_subclass_of;
 use function print_r;
 use function sprintf;
 use function str_starts_with;
@@ -38,27 +42,27 @@ use function substr;
  */
 class Reference implements SpecObjectInterface, DocumentContextInterface
 {
-    private string|null $_to;
+    private ReferenceTarget|null $_to;
     private readonly string $_ref;
-    private JsonReference|null $_jsonReference = null;
-    private ReferenceContext $_context;
+    private JsonReference|null $_jsonReference      = null;
+    private ReferenceContext|null $_context         = null;
     private SpecObjectInterface|null $_baseDocument = null;
     private JsonPointer|null $_jsonPointer          = null;
     /** @var list<string> */
     private array $_errors = [];
 
+    private string|null $summary     = null;
+    private string|null $description = null;
+
     /** @inheritDoc */
-    public function __construct(array $data, string|null $to = null)
-    {
+    public function __construct(
+        array $data,
+        private readonly OpenApiVersion|null $openApiVersion = null,
+        ReferenceTarget|null $target = null,
+    ) {
         if (! isset($data['$ref'])) {
             throw new TypeErrorException(
                 "Unable to instantiate Reference Object with data '" . print_r($data, true) . "'.",
-            );
-        }
-
-        if ($to !== null && ! is_subclass_of($to, SpecObjectInterface::class, true)) {
-            throw new TypeErrorException(
-                'Unable to instantiate Reference Object, Referenced Class type must implement SpecObjectInterface.',
             );
         }
 
@@ -68,7 +72,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
             );
         }
 
-        $this->_to  = $to;
+        $this->_to  = $target;
         $this->_ref = $data['$ref'];
         try {
             $this->_jsonReference = JsonReference::createFromReference($this->_ref);
@@ -76,11 +80,42 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
             $this->_errors[] = 'Reference: value of $ref is not a valid JSON pointer: ' . $e->getMessage();
         }
 
-        if (count($data) === 1) {
+        if ($this->openApiVersion === OpenApiVersion::VERSION_3_0) {
+            if (count($data) !== 1) {
+                $this->_errors[] = 'Reference: additional properties are given. Only $ref should be set in a Reference Object.';
+            }
+        }
+
+        if ($this->openApiVersion !== OpenApiVersion::VERSION_3_1) {
             return;
         }
 
-        $this->_errors[] = 'Reference: additional properties are given. Only $ref should be set in a Reference Object.';
+        if (isset($data['summary']) && is_string($data['summary'])) {
+            $this->summary = $data['summary'];
+        }
+
+        if (isset($data['description']) && is_string($data['description'])) {
+            $this->description = $data['description'];
+        }
+
+        unset($data['summary'], $data['description'], $data['$ref']);
+        if ($data === []) {
+            return;
+        }
+
+        $this->_errors[] = 'Reference: only summary and description are allowed as additional properties.';
+    }
+
+    /** @inheritDoc */
+    public function attributes(): array
+    {
+        $allowedAttributes = ['$ref' => Type::STRING];
+        if ($this->openApiVersion === OpenApiVersion::VERSION_3_1) {
+            $allowedAttributes['summary']     = Type::STRING;
+            $allowedAttributes['description'] = Type::STRING;
+        }
+
+        return $allowedAttributes;
     }
 
     /**
@@ -89,7 +124,11 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
      */
     public function getSerializableData(): object
     {
-        return (object) ['$ref' => $this->_ref];
+        return (object) array_filter([
+            '$ref' => $this->_ref,
+            'summary' => $this->summary,
+            'description' => $this->description,
+        ]);
     }
 
     /**
@@ -158,6 +197,25 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
      */
     public function resolve(ReferenceContext|null $context = null): SpecObjectInterface|array|string|null
     {
+        $resolved = $this->resolveInternal($context);
+        if ($resolved instanceof SpecBaseObject) {
+            if ($this->summary !== null && $this->_to?->allowsAttribute('summary')) {
+                $resolved          = clone $resolved;
+                $resolved->summary = $this->summary;
+            }
+
+            if ($this->description !== null && $this->_to?->allowsAttribute('description')) {
+                $resolved              = clone $resolved;
+                $resolved->description = $this->description;
+            }
+        }
+
+        return $resolved;
+    }
+
+    /** @return SpecObjectInterface|array<mixed>|null */
+    private function resolveInternal(ReferenceContext|null $context): SpecObjectInterface|array|string|null
+    {
         if (! $context instanceof ReferenceContext) {
             $context = $this->getContext();
             if (! $context instanceof ReferenceContext) {
@@ -193,6 +251,13 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
                         $referencedObject->setReferenceContext($context);
                     }
 
+                    assert(
+                        $referencedObject instanceof SpecObjectInterface
+                        || is_array($referencedObject)
+                        || is_string($referencedObject)
+                        || $referencedObject === null,
+                    );
+
                     return $referencedObject;
                 } else {
                     // if current document was loaded via reference, it may be null,
@@ -207,7 +272,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
                 $referencedDocument = $context->fetchReferencedFile($file);
             } catch (Throwable $e) {
                 $exception          = new UnresolvableReferenceException(
-                    sprintf('Failed to resolve Reference \'%s\' to %s Object: ', $this->_ref, $this->_to) . $e->getMessage(),
+                    sprintf('Failed to resolve Reference \'%s\' to %s Object: ', $this->_ref, $this->_to->asString()) . $e->getMessage(),
                     $e->getCode(),
                     $e,
                 );
@@ -217,7 +282,13 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
             }
 
             $referencedDocument = $this->adjustRelativeReferences($referencedDocument, $file, null, $context);
-            $referencedObject   = $context->resolveReferenceData($file, $jsonReference->getJsonPointer(), $referencedDocument, $this->_to);
+            $referencedObject   = $context->resolveReferenceData(
+                $file,
+                $jsonReference->getJsonPointer(),
+                $referencedDocument,
+                $this->_to,
+                $this->openApiVersion,
+            );
 
             if ($referencedObject instanceof DocumentContextInterface && (! $referencedObject->getDocumentPosition() instanceof JsonPointer && $this->getDocumentPosition() instanceof JsonPointer)) {
                 $referencedObject->setDocumentContext($context->getBaseSpec(), $this->getDocumentPosition());
@@ -236,7 +307,7 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
 
             return $referencedObject;
         } catch (NonexistentJsonPointerReferenceException $e) {
-            $message = sprintf('Failed to resolve Reference \'%s\' to %s Object: ', $this->_ref, $this->_to) . $e->getMessage();
+            $message = sprintf('Failed to resolve Reference \'%s\' to %s Object: ', $this->_ref, $this->_to->asString()) . $e->getMessage();
             if ($context->throwException) {
                 $exception          = new UnresolvableReferenceException($message, 0, $e);
                 $exception->context = $this->getDocumentPosition();
@@ -409,5 +480,10 @@ class Reference implements SpecObjectInterface, DocumentContextInterface
     public function getDocumentPosition(): JsonPointer|null
     {
         return $this->_jsonPointer;
+    }
+
+    public function getApiVersion(): OpenApiVersion
+    {
+        return $this->openApiVersion ?? OpenApiVersion::VERSION_UNSUPPORTED;
     }
 }

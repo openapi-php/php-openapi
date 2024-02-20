@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace openapiphp\openapi\spec;
 
 use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\SpecBaseObject;
 
 use function gettype;
@@ -67,7 +68,7 @@ use function sprintf;
 class Schema extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             // The following properties are taken directly from the JSON Schema definition and follow the same specifications:
@@ -132,11 +133,11 @@ class Schema extends SpecBaseObject
     }
 
     /** @inheritDoc */
-    public function __construct(array $data)
+    public function __construct(array $data, OpenApiVersion|null $openApiVersion = null)
     {
         if (isset($data['additionalProperties'])) {
             if (is_array($data['additionalProperties'])) {
-                $data['additionalProperties'] = $this->instantiate(self::class, $data['additionalProperties']);
+                $data['additionalProperties'] = $this->instantiate(self::class, $data['additionalProperties'], $openApiVersion);
             } elseif (! ($data['additionalProperties'] instanceof Schema || $data['additionalProperties'] instanceof Reference || is_bool($data['additionalProperties']))) {
                 $givenType = gettype($data['additionalProperties']);
                 if ($givenType === 'object' && is_object($data['additionalProperties'])) {
@@ -147,7 +148,7 @@ class Schema extends SpecBaseObject
             }
         }
 
-        parent::__construct($data);
+        parent::__construct($data, $openApiVersion);
     }
 
     /**

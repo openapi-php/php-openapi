@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace openapiphp\openapi\spec;
 
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\SpecBaseObject;
 
 use function count;
@@ -33,7 +34,7 @@ use function in_array;
 class Parameter extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'name' => Type::STRING,
@@ -64,7 +65,7 @@ class Parameter extends SpecBaseObject
     }
 
     /** @inheritDoc */
-    public function __construct(array $data)
+    public function __construct(array $data, OpenApiVersion|null $openApiVersion = null)
     {
         if (isset($data['in'])) {
             // Spec: Default values (based on value of in):
@@ -91,7 +92,7 @@ class Parameter extends SpecBaseObject
             $this->_attributeDefaults['explode'] = ($data['style'] === 'form');
         }
 
-        parent::__construct($data);
+        parent::__construct($data, $openApiVersion);
     }
 
     /**

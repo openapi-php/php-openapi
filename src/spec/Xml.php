@@ -20,7 +20,7 @@ use openapiphp\openapi\SpecBaseObject;
 final class Xml extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'attribute' => Type::BOOLEAN,

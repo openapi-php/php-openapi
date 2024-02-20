@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace openapiphp\openapi\spec;
 
 use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\SpecBaseObject;
 
 use function gettype;
@@ -25,7 +26,7 @@ use function sprintf;
 class MediaType extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'schema' => Schema::class,
@@ -36,13 +37,13 @@ class MediaType extends SpecBaseObject
     }
 
     /** @inheritDoc */
-    public function __construct(array $data)
+    public function __construct(array $data, OpenApiVersion|null $openApiVersion = null)
     {
         // instantiate Encoding by passing the schema for extracting default values
         $encoding = $data['encoding'] ?? null;
         unset($data['encoding']);
 
-        parent::__construct($data);
+        parent::__construct($data, $openApiVersion);
 
         if (! is_array($encoding)) {
             return;
@@ -55,9 +56,9 @@ class MediaType extends SpecBaseObject
                 $schema = $this->schema->properties[$property] ?? null;
                 // Don't pass the schema if it's still an unresolved reference.
                 if ($schema instanceof Reference) {
-                    $encoding[$property] = new Encoding($encodingData);
+                    $encoding[$property] = new Encoding($encodingData, $openApiVersion);
                 } else {
-                    $encoding[$property] = new Encoding($encodingData, $schema);
+                    $encoding[$property] = new Encoding($encodingData, $openApiVersion, $schema);
                 }
             } else {
                 $givenType = gettype($encodingData);

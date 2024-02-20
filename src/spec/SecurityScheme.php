@@ -33,7 +33,7 @@ final class SecurityScheme extends SpecBaseObject
     ];
 
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'bearerFormat' => Type::STRING,

@@ -12,7 +12,9 @@ use openapiphp\openapi\DocumentContextInterface;
 use openapiphp\openapi\exceptions\TypeErrorException;
 use openapiphp\openapi\exceptions\UnresolvableReferenceException;
 use openapiphp\openapi\json\JsonPointer;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\ReferenceContext;
+use openapiphp\openapi\ReferenceTarget;
 use openapiphp\openapi\SpecObjectInterface;
 use Traversable;
 
@@ -54,7 +56,7 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
      *
      * @throws TypeErrorException in case invalid data is supplied.
      */
-    public function __construct(array $data)
+    public function __construct(array $data, private readonly OpenApiVersion|null $openApiVersion = null)
     {
         foreach ($data as $statusCode => $response) {
             // From Spec: This field MUST be enclosed in quotation marks (for example, "200") for compatibility between JSON and YAML.
@@ -63,9 +65,9 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
                 if ($response instanceof Response || $response instanceof Reference) {
                     $this->_responses[$statusCode] = $response;
                 } elseif (is_array($response) && isset($response['$ref'])) {
-                    $this->_responses[$statusCode] = new Reference($response, Response::class);
+                    $this->_responses[$statusCode] = new Reference($response, $this->openApiVersion, new ReferenceTarget($this));
                 } elseif (is_array($response)) {
-                    $this->_responses[$statusCode] = new Response($response);
+                    $this->_responses[$statusCode] = new Response($response, $this->openApiVersion);
                 } else {
                     $givenType = gettype($response);
                     if (is_object($response)) {
@@ -344,5 +346,18 @@ class Responses implements SpecObjectInterface, DocumentContextInterface, ArrayA
     public function getDocumentPosition(): JsonPointer|null
     {
         return $this->_jsonPointer;
+    }
+
+    public function getApiVersion(): OpenApiVersion
+    {
+        return $this->openApiVersion ?? OpenApiVersion::VERSION_UNSUPPORTED;
+    }
+
+    /** @inheritDoc */
+    public function attributes(): array
+    {
+        return [
+            [Type::STRING, Response::class],
+        ];
     }
 }

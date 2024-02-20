@@ -21,7 +21,7 @@ use openapiphp\openapi\SpecBaseObject;
 class Link extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'operationRef' => Type::STRING,

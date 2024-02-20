@@ -97,7 +97,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/spec/PathItem.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method openapiphp\\\\openapi\\\\spec\\\\Reference\\:\\:resolve\\(\\) should return array\\|openapiphp\\\\openapi\\\\SpecObjectInterface\\|string\\|null but returns mixed\\.$#',
+	'message' => '#^Access to an undefined property openapiphp\\\\openapi\\\\SpecBaseObject\\:\\:\\$description\\.$#',
+	'count' => 1,
+	'path' => __DIR__ . '/src/spec/Reference.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Access to an undefined property openapiphp\\\\openapi\\\\SpecBaseObject\\:\\:\\$summary\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/src/spec/Reference.php',
 ];

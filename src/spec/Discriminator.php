@@ -17,7 +17,7 @@ use openapiphp\openapi\SpecBaseObject;
 final class Discriminator extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'mapping' => [Type::STRING, Type::STRING],

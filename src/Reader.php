@@ -47,8 +47,8 @@ final class Reader
     /**
      * Populate OpenAPI spec object from YAML data.
      *
-     * @param string $yaml     the YAML string to decode.
-     * @param string $baseType the base Type to instantiate. This must be an instance of [[SpecObjectInterface]].
+     * @param string                            $yaml     the YAML string to decode.
+     * @param class-string<SpecObjectInterface> $baseType the base Type to instantiate. This must be an instance of [[SpecObjectInterface]].
      * The default is [[OpenApi]] which is the base type of a OpenAPI specification file.
      * You may choose a different type if you instantiate objects from sub sections of a specification.
      * @phpstan-param class-string<T> $baseType

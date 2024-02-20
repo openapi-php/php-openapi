@@ -7,6 +7,7 @@ namespace openapiphp\openapi\spec;
 use openapiphp\openapi\DocumentContextInterface;
 use openapiphp\openapi\exceptions\UnresolvableReferenceException;
 use openapiphp\openapi\json\JsonPointer;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\ReferenceContext;
 use openapiphp\openapi\SpecObjectInterface;
 
@@ -31,7 +32,7 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
     private JsonPointer|null $_jsonPointer          = null;
 
     /** @inheritDoc */
-    public function __construct(array $data)
+    public function __construct(array $data, private readonly OpenApiVersion|null $openApiVersion = null)
     {
         if (count($data) !== 1) {
             $this->_errors[] = 'Callback object must have exactly one URL.';
@@ -40,7 +41,7 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
         }
 
         $this->_url      = key($data);
-        $this->_pathItem = new PathItem($data[$this->_url]);
+        $this->_pathItem = new PathItem($data[$this->_url], $this->openApiVersion);
     }
 
     /**
@@ -155,5 +156,18 @@ class Callback implements SpecObjectInterface, DocumentContextInterface
     public function getDocumentPosition(): JsonPointer|null
     {
         return $this->_jsonPointer;
+    }
+
+    public function getApiVersion(): OpenApiVersion
+    {
+        return $this->openApiVersion ?? OpenApiVersion::VERSION_UNSUPPORTED;
+    }
+
+    /** @inheritDoc */
+    public function attributes(): array
+    {
+        return [
+            [Type::STRING, PathItem::class],
+        ];
     }
 }

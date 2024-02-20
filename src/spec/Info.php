@@ -23,7 +23,7 @@ use openapiphp\openapi\SpecBaseObject;
 class Info extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'title' => Type::STRING,

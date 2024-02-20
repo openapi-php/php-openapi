@@ -17,7 +17,7 @@ use openapiphp\openapi\SpecBaseObject;
 final class License extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'name' => Type::STRING,

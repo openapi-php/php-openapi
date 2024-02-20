@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace openapiphp\openapi\spec;
 
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\SpecBaseObject;
 
+use function is_string;
 use function preg_match;
 
 /**
@@ -25,21 +27,34 @@ use function preg_match;
  */
 final class OpenApi extends SpecBaseObject
 {
-    public const VERSION_3_0         = '3.0';
-    public const VERSION_3_1         = '3.1';
-    public const VERSION_UNSUPPORTED = 'unsupported';
-
     /**
      * Pattern used to validate OpenAPI versions.
      */
     public const PATTERN_VERSION = '/^(3\.(0|1))\.\d+(-rc\d)?$/i';
+
+    /** @inheritDoc */
+    public function __construct(array $data, OpenApiVersion|null $defaultOpenApiVersion = OpenApiVersion::VERSION_UNSUPPORTED)
+    {
+        $matches = [];
+        if (isset($data['openapi']) && is_string($data['openapi'])) {
+            preg_match(self::PATTERN_VERSION, $data['openapi'], $matches);
+        }
+
+        $openApiVersion = match ($matches[1] ?? '') {
+            OpenApiVersion::VERSION_3_0->value => OpenApiVersion::VERSION_3_0,
+            OpenApiVersion::VERSION_3_1->value => OpenApiVersion::VERSION_3_1,
+            default => $defaultOpenApiVersion
+        };
+
+        parent::__construct($data, $openApiVersion);
+    }
 
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      */
     public function performValidation(): void
     {
-        if ($this->getMajorVersion() === self::VERSION_3_0) {
+        if ($this->openApiVersion === OpenApiVersion::VERSION_3_0) {
             $this->requireProperties(['openapi', 'info', 'paths']);
         } else {
             $this->requireProperties(['openapi', 'info'], ['paths', 'webhooks', 'components']);
@@ -55,34 +70,15 @@ final class OpenApi extends SpecBaseObject
     /**
      * Returns the OpenAPI major version of the loaded OpenAPI description.
      *
-     * @return string This returns a value of one of the `VERSION_*`-constants. Currently supported versions are:
-     *
-     * - `VERSION_3_0 = '3.0'`
-     * - `VERSION_3_1 = '3.1'`
-     *
      * For unsupported version, this function will return `VERSION_UNSUPPORTED = 'unsupported'`
      */
-    public function getMajorVersion(): string
+    public function getMajorVersion(): OpenApiVersion
     {
-        if (empty($this->openapi)) {
-            return self::VERSION_UNSUPPORTED;
-        }
-
-        if (preg_match(self::PATTERN_VERSION, $this->openapi, $matches)) {
-            switch ($matches[1]) {
-                case '3.0':
-                    return self::VERSION_3_0;
-
-                case '3.1':
-                    return self::VERSION_3_1;
-            }
-        }
-
-        return self::VERSION_UNSUPPORTED;
+        return $this->openApiVersion ?? OpenApiVersion::VERSION_UNSUPPORTED;
     }
 
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'openapi' => Type::STRING,
@@ -103,7 +99,7 @@ final class OpenApi extends SpecBaseObject
         return [
             // Spec: If the servers property is not provided, or is an empty array,
             // the default value would be a Server Object with a url value of /.
-            'servers' => [new Server(['url' => '/'])],
+            'servers' => [new Server(['url' => '/'], $this->openApiVersion)],
         ];
     }
 
