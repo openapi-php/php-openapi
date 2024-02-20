@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenApiTest\spec;
 
 use openapiphp\openapi\json\JsonPointer;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\Reader;
 use openapiphp\openapi\spec\Components;
 use openapiphp\openapi\spec\ExternalDocumentation;
@@ -231,7 +232,7 @@ class OpenApiTest extends TestCase
         $this->assertTrue($result);
 
         // openapi
-        $this->assertNotSame(OpenApi::VERSION_UNSUPPORTED, $openapi->getMajorVersion());
+        $this->assertNotSame(OpenApiVersion::VERSION_UNSUPPORTED, $openapi->getMajorVersion());
 
         // info
         $this->assertInstanceOf(Info::class, $openapi->info);
@@ -279,7 +280,7 @@ paths: []
 YAML;
         $openapi = Reader::readFromYaml($yaml);
         $this->assertTrue($openapi->validate(), print_r($openapi->getErrors(), true));
-        $this->assertEquals('3.0', $openapi->getMajorVersion());
+        $this->assertEquals('3.0', $openapi->getMajorVersion()->value);
 
         $yaml    = <<<'YAML'
 openapi: 3.1.0
@@ -290,6 +291,6 @@ paths: []
 YAML;
         $openapi = Reader::readFromYaml($yaml);
         $this->assertTrue($openapi->validate(), print_r($openapi->getErrors(), true));
-        $this->assertEquals('3.1', $openapi->getMajorVersion());
+        $this->assertEquals('3.1', $openapi->getMajorVersion()->value);
     }
 }

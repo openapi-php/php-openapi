@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace OpenApiTest\spec;
 
 use openapiphp\openapi\exceptions\TypeErrorException;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\Reader;
 use openapiphp\openapi\ReferenceContext;
+use openapiphp\openapi\ReferenceTarget;
 use openapiphp\openapi\spec\Discriminator;
 use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
@@ -389,7 +391,13 @@ JSON;
 
         $this->assertEquals('boolean', $refResolved->type);
 
-        $schema = new Schema(['additionalProperties' => new Reference(['$ref' => '#/here'], Schema::class)]);
+        $schema = new Schema([
+            'additionalProperties' => new Reference(
+                ['$ref' => '#/here'],
+                OpenApiVersion::VERSION_3_0,
+                new ReferenceTarget(new Schema([])),
+            ),
+        ]);
         $this->assertInstanceOf(Reference::class, $schema->additionalProperties);
     }
 

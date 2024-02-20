@@ -19,7 +19,7 @@ use openapiphp\openapi\SpecBaseObject;
 class OAuthFlows extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'implicit' => OAuthFlow::class,

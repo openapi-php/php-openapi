@@ -1,0 +1,37 @@
+openapi: 3.1.0
+info:
+  title: Reference allows description and summary
+  version: 1.0.0
+paths:
+  /example1:
+    get:
+      $ref: "#/components/schemas/ReferenceCommon"
+  /example2:
+    get:
+      $ref: "#/components/schemas/ReferenceCommon"
+      summary: "New Summary"
+      description: "New Description"
+  /example3:
+    get:
+      requestBody:
+        $ref: "#/components/parameters/FooInput"
+    post:
+      requestBody:
+        $ref: "#/components/parameters/FooInput"
+        description: "Overwrite"
+        summary: "Not allowed here"
+components:
+  schemas:
+    ReferenceCommon:
+      summary: "Default Summary"
+      description: "Default Description"
+      responses:
+        200:
+          description: OK
+  parameters:
+    FooInput:
+      name: Foo
+      in: path
+      required: true
+      schema:
+      description: "Default Description"

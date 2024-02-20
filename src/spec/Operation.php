@@ -27,7 +27,7 @@ use openapiphp\openapi\SpecBaseObject;
 class Operation extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'tags' => [Type::STRING],

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace openapiphp\openapi\spec;
 
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\SpecBaseObject;
 
 /**
@@ -20,7 +21,7 @@ use openapiphp\openapi\SpecBaseObject;
 class Encoding extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'contentType' => Type::STRING,
@@ -43,8 +44,11 @@ class Encoding extends SpecBaseObject
     }
 
     /** @inheritDoc */
-    public function __construct(array $data, Schema|null $schema = null)
-    {
+    public function __construct(
+        array $data,
+        OpenApiVersion|null $openApiVersion = null,
+        Schema|null $schema = null,
+    ) {
         if (isset($data['style'])) {
             // Spec: When style is form, the default value is true.
             $this->_attributeDefaults['explode'] = ($data['style'] === 'form');
@@ -74,7 +78,7 @@ class Encoding extends SpecBaseObject
             }
         }
 
-        parent::__construct($data);
+        parent::__construct($data, $openApiVersion);
     }
 
     /**

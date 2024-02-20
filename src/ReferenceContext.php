@@ -63,8 +63,11 @@ class ReferenceContext
      *
      * @throws UnresolvableReferenceException in case an invalid or non-absolute URI is provided.
      */
-    public function __construct(private readonly SpecObjectInterface|null $_baseSpec, string $uri, ReferenceContextCache|null $cache = null)
-    {
+    public function __construct(
+        private readonly SpecObjectInterface|null $_baseSpec,
+        string $uri,
+        ReferenceContextCache|null $cache = null,
+    ) {
         $this->_uri   = $this->normalizeUri($uri);
         $this->_cache = $cache ?? new ReferenceContextCache();
         if ($cache instanceof ReferenceContextCache || ! $this->_baseSpec instanceof SpecObjectInterface) {
@@ -263,11 +266,16 @@ class ReferenceContext
      *
      * @return SpecObjectInterface|array<string, mixed>|null
      */
-    public function resolveReferenceData(string $uri, JsonPointer $pointer, mixed $data, string|null $toType): SpecObjectInterface|array|string|null
-    {
+    public function resolveReferenceData(
+        string $uri,
+        JsonPointer $pointer,
+        mixed $data,
+        ReferenceTarget|null $toType,
+        OpenApiVersion|null $openApiVersion,
+    ): SpecObjectInterface|array|string|null {
         $ref = $uri . '#' . $pointer->getPointer();
-        if ($this->_cache->has($ref, $toType)) {
-            return $this->_cache->get($ref, $toType);
+        if ($this->_cache->has($ref, $toType?->asString())) {
+            return $this->_cache->get($ref, $toType?->asString());
         }
 
         $referencedData = $pointer->evaluate($data);
@@ -278,13 +286,14 @@ class ReferenceContext
 
         // transitive reference
         if (isset($referencedData['$ref'])) {
-            return new Reference($referencedData, $toType);
+            return new Reference($referencedData, $openApiVersion, $toType);
         }
 
-        $referencedObject = $toType !== null ? new $toType($referencedData) : $referencedData;
+        $referencedObject = $toType?->createInstance($referencedData);
+        $referencedData   = $referencedObject ?? $referencedData;
 
-        $this->_cache->set($ref, $toType, $referencedObject);
+        $this->_cache->set($ref, $toType?->asString(), $referencedData);
 
-        return $referencedObject;
+        return $referencedData;
     }
 }

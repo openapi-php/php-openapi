@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenApiTest\spec;
 
 use openapiphp\openapi\exceptions\UnresolvableReferenceException;
+use openapiphp\openapi\OpenApiVersion;
 use openapiphp\openapi\Reader;
 use openapiphp\openapi\ReferenceContext;
 use openapiphp\openapi\spec\Example;
@@ -90,9 +91,9 @@ YAML
         $this->assertInstanceOf(Example::class, $refExample = $petResponse->content['application/json']->examples['frog']);
         $this->assertInstanceOf(Response::class, $refResponse = $openapi->paths->getPath('/pet/1')->get->responses['200']);
 
-        $this->assertSame($openapi->components->schemas['Pet'], $refSchema);
-        $this->assertSame($openapi->components->examples['frog-example'], $refExample);
-        $this->assertSame($openapi->components->responses['Pet'], $refResponse);
+        $this->assertEquals($openapi->components->schemas['Pet'], $refSchema);
+        $this->assertEquals($openapi->components->examples['frog-example'], $refExample);
+        $this->assertEquals($openapi->components->responses['Pet'], $refResponse);
     }
 
     public function testResolveCyclicReferenceInDocument(): void
@@ -149,9 +150,9 @@ YAML
         $this->assertInstanceOf(Schema::class, $refSchema = $response->content['application/json']->schema);
         $this->assertInstanceOf(Example::class, $refExample = $response->content['application/json']->examples['frog']);
 
-        $this->assertSame($openapi->components->schemas['Pet'], $petItems);
-        $this->assertSame($openapi->components->schemas['Pet'], $refSchema);
-        $this->assertSame($openapi->components->examples['frog-example'], $refExample);
+        $this->assertEquals($openapi->components->schemas['Pet'], $petItems);
+        $this->assertEquals($openapi->components->schemas['Pet'], $refSchema);
+        $this->assertEquals($openapi->components->examples['frog-example'], $refExample);
     }
 
     private function createFileUri(string $file): string
@@ -290,7 +291,7 @@ YAML
         $newPlaylistBody = $openapi->paths['/playlist/{id}']->patch->requestBody;
         $this->assertInstanceOf(RequestBody::class, $playlistsBody);
         $this->assertInstanceOf(RequestBody::class, $newPlaylistBody);
-        $this->assertSame($playlistsBody, $newPlaylistBody);
+        $this->assertEquals($playlistsBody, $newPlaylistBody);
     }
 
     public function testReferenceToArray(): void
@@ -646,6 +647,99 @@ YAML;
                       $ref: '#/components/schemas/Cat'
                   description: 'A Pet'
               description: 'A Cat'
+        
+        YAML;
+        // remove line endings to make string equal on windows
+        $expected = preg_replace('~\R~', "\n", $expected);
+        $this->assertEquals($expected, $yaml, $yaml);
+    }
+
+    public function testValidate(): void
+    {
+        $reference = new Reference(['$ref' => '#/components/schemas/Dummy'], OpenApiVersion::VERSION_3_0, null);
+        self::assertTrue($reference->validate());
+
+        $reference = new Reference([
+            '$ref' => '#/components/schemas/Dummy',
+            'description' => 'Description',
+        ], OpenApiVersion::VERSION_3_0, null);
+        self::assertFalse($reference->validate());
+
+        $reference = new Reference([
+            '$ref' => '#/components/schemas/Dummy',
+            'description' => 'Description',
+            'summary' => 'Summary',
+        ], OpenApiVersion::VERSION_3_1, null);
+        self::assertTrue($reference->validate());
+
+        $reference = new Reference([
+            '$ref' => '#/components/schemas/Dummy',
+            'invalid' => 'invalid',
+        ], OpenApiVersion::VERSION_3_1, null);
+        self::assertFalse($reference->validate());
+        self::assertStringContainsString('only summary and description are allowed', $reference->getErrors()[0]);
+    }
+
+    public function testFieldsAreOverwriteReference(): void
+    {
+        $openapi = Reader::readFromYamlFile(
+            __DIR__ . '/data/reference/ReferenceOpenApi31.yml',
+            OpenApi::class,
+            ReferenceContext::RESOLVE_MODE_ALL,
+        );
+
+        $yaml = Writer::writeToYaml($openapi);
+
+        $expected = <<<'YAML'
+        openapi: 3.1.0
+        info:
+          title: 'Reference allows description and summary'
+          version: 1.0.0
+        paths:
+          /example1:
+            get:
+              description: 'Default Description'
+              summary: 'Default Summary'
+              responses:
+                '200':
+                  description: OK
+          /example2:
+            get:
+              description: 'New Description'
+              summary: 'New Summary'
+              responses:
+                '200':
+                  description: OK
+          /example3:
+            get:
+              requestBody:
+                name: Foo
+                in: path
+                description: 'Default Description'
+                required: true
+                schema: null
+            post:
+              requestBody:
+                name: Foo
+                in: path
+                description: Overwrite
+                required: true
+                schema: null
+        components:
+          parameters:
+            FooInput:
+              name: Foo
+              in: path
+              description: 'Default Description'
+              required: true
+              schema: null
+          schemas:
+            ReferenceCommon:
+              description: 'Default Description'
+              summary: 'Default Summary'
+              responses:
+                '200':
+                  description: OK
         
         YAML;
         // remove line endings to make string equal on windows

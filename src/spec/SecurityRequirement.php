@@ -14,7 +14,7 @@ use openapiphp\openapi\SpecBaseObject;
 final class SecurityRequirement extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         // this object does not have a fixed set of attribute names
         return [];
