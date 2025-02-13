@@ -193,7 +193,7 @@ class OpenApiTest extends TestCase
         while ($it->valid()) {
             if (
                 $it->getExtension() === 'yml'
-                && ! str_contains((string) $it->getSubPath(), 'common')
+                && ! str_contains($it->getSubPath(), 'common')
                 && $it->getBasename() !== 'voice.v2.yml' // contains invalid references
             ) {
                 $nexmoExamples[] = $it->key();
