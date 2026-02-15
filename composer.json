@@ -22,9 +22,9 @@
 		"source": "https://github.com/openapi-php/php-openapi"
 	},
 	"require": {
-		"php": "^8.1 || ^8.2 || ^8.3 || ^8.4",
+		"php": "^8.1 || ^8.2 || ^8.3 || ^8.4 || ^8.5",
 		"ext-json": "*",
-		"symfony/yaml": "^6.1 || ^7.0",
+		"symfony/yaml": "^6.1 || ^7.0 || ^8.0",
 		"justinrainbow/json-schema": "^5.2 || ^6.0"
 	},
 	"require-dev": {
@@ -69,7 +69,7 @@
 		],
 		"stan": "phpstan analyse",
 		"stan-baseline": "@php -dzend.assertions=-1 vendor/bin/phpstan analyse --generate-baseline phpstan-baseline.php",
-		"test": "@php -dzend.assertions=1 ./vendor/bin/phpunit  --no-coverage",
+		"test": "@php -dzend.assertions=1 ./vendor/bin/phpunit  --no-coverage --display-all-issues",
 		"test-coverage": "@php -dxdebug.mode=coverage -dzend.assertions=1 ./vendor/bin/phpunit",
 		"rector-fix": [
 			"rector process",
