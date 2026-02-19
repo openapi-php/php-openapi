@@ -18,7 +18,7 @@ use openapiphp\openapi\SpecBaseObject;
 final class ServerVariable extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'default' => Type::STRING,

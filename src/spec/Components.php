@@ -32,7 +32,7 @@ use function sprintf;
 final class Components extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'callbacks' => [Type::STRING, Callback::class],

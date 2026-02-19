@@ -18,7 +18,12 @@ interface SpecObjectInterface
      *
      * @throws TypeErrorException in case invalid data is supplied.
      */
-    public function __construct(array $data);
+    public function __construct(array $data, OpenApiVersion|null $openApiVersion = null);
+
+    public function getApiVersion(): OpenApiVersion;
+
+    /** @return array<array-key, string|list<string>> array of attributes available in this object. */
+    public function attributes(): array;
 
     /**
      * @return object returns the serializable data of this object for converting it

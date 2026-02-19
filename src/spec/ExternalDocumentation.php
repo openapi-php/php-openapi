@@ -17,7 +17,7 @@ use openapiphp\openapi\SpecBaseObject;
 class ExternalDocumentation extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'description' => Type::STRING,

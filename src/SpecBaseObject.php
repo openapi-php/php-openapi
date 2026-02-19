@@ -51,9 +51,6 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
     private SpecObjectInterface|null $_baseDocument = null;
     private JsonPointer|null $_jsonPointer          = null;
 
-    /** @return array<string, string|list<string>> array of attributes available in this object. */
-    abstract protected function attributes(): array;
-
     /**
      * Perform validation on this object, check data against OpenAPI Specification rules.
      *
@@ -62,8 +59,10 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
     abstract protected function performValidation(): void;
 
     /** @inheritDoc */
-    public function __construct(array $data)
-    {
+    public function __construct(
+        array $data,
+        protected OpenApiVersion|null $openApiVersion = null,
+    ) {
         foreach ($this->attributes() as $property => $type) {
             if (! isset($data[$property])) {
                 continue;
@@ -89,7 +88,11 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
                 switch (count($type)) {
                     case 1:
                         if (isset($data[$property]['$ref'])) {
-                            $this->_properties[$property] = new Reference($data[$property], null);
+                            $this->_properties[$property] = new Reference(
+                                $data[$property],
+                                $this->openApiVersion,
+                                new ReferenceTarget($this, $property),
+                            );
                         } else {
                             // array
                             $this->_properties[$property] = [];
@@ -107,10 +110,14 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
                                     $this->_properties[$property][$key] = $item;
                                 } elseif ($type[0] === Type::ANY) {
                                     $this->_properties[$property][$key] = is_array($item) && isset($item['$ref'])
-                                        ? new Reference($item, null)
+                                        ? new Reference(
+                                            $item,
+                                            $this->openApiVersion,
+                                            new ReferenceTarget($this, $property),
+                                        )
                                         : $item;
                                 } else {
-                                    $this->_properties[$property][$key] = $this->instantiate($type[0], $item);
+                                    $this->_properties[$property][$key] = $this->instantiate($type[0], $item, $this->openApiVersion);
                                 }
                             }
                         }
@@ -139,7 +146,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
                             } elseif ($type[1] === Type::ANY || Type::isScalar($type[1])) {
                                 $this->_properties[$property][$key] = $item;
                             } else {
-                                $this->_properties[$property][$key] = $this->instantiate($type[1], $item);
+                                $this->_properties[$property][$key] = $this->instantiate($type[1], $item, $this->openApiVersion);
                             }
                         }
 
@@ -149,10 +156,14 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
                 $this->_properties[$property] = $data[$property];
             } elseif ($type === Type::ANY) {
                 $this->_properties[$property] = is_array($data[$property]) && isset($data[$property]['$ref'])
-                    ? new Reference($data[$property], null)
+                    ? new Reference(
+                        $data[$property],
+                        $this->openApiVersion,
+                        new ReferenceTarget($this, $property),
+                    )
                     : $data[$property];
             } else {
-                $this->_properties[$property] = $this->instantiate($type, $data[$property]);
+                $this->_properties[$property] = $this->instantiate($type, $data[$property], $this->openApiVersion);
             }
 
             unset($data[$property]);
@@ -315,15 +326,25 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
         return [];
     }
 
-    /** @throws TypeErrorException */
-    protected function instantiate(string $type, mixed $data): object
+    /**
+     * @param class-string<SpecObjectInterface> $type
+     *
+     * @throws TypeErrorException
+     */
+    protected function instantiate(string $type, mixed $data, OpenApiVersion|null $openApiVersion): object
     {
         if ($data instanceof $type || $data instanceof Reference) {
             return $data;
         }
 
         if (is_array($data) && isset($data['$ref'])) {
-            return new Reference($data, $type);
+            return new Reference(
+                $data,
+                $openApiVersion,
+                new ReferenceTarget(
+                    new $type([], $openApiVersion),
+                ),
+            );
         }
 
         if (! is_array($data)) {
@@ -336,7 +357,7 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
         }
 
         try {
-            return new $type($data);
+            return new $type($data, $openApiVersion);
         } catch (TypeError $e) {
             throw new TypeErrorException(
                 sprintf("Unable to instantiate %s Object with data '", $type) . print_r(
@@ -627,5 +648,10 @@ abstract class SpecBaseObject implements SpecObjectInterface, DocumentContextInt
         }
 
         return $extensions;
+    }
+
+    public function getApiVersion(): OpenApiVersion
+    {
+        return $this->openApiVersion ?? OpenApiVersion::VERSION_UNSUPPORTED;
     }
 }

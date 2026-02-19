@@ -18,7 +18,7 @@ use openapiphp\openapi\SpecBaseObject;
 class Server extends SpecBaseObject
 {
     /** @inheritDoc */
-    protected function attributes(): array
+    public function attributes(): array
     {
         return [
             'url' => Type::STRING,
